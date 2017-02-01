@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/kvittoscanner.iml" filepath="$PROJECT_DIR$/kvittoscanner.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Kvittoscanner.iml" filepath="$PROJECT_DIR$/Kvittoscanner.iml" />
     </modules>
   </component>
 </project>
