@@ -27,7 +27,8 @@ public class TwoTone {
 		System.load(System.getProperty("java.library.path"));
 		//System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-		String file = "/Users/gustavbergstrom/Documents/Kandidat/house.jpeg";
+		//String file = "/Users/gustavbergstrom/Documents/Kandidat/house.jpeg";
+		String file = "src/test/resources/randomimages/house.jpeg";
 
 		BufferedImage img = null;
 		try {
