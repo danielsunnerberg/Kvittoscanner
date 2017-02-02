@@ -15,8 +15,8 @@ repositories {
 
 dependencies {
     compile name: 'opencv-320'
-    testCompile("org.junit.jupiter:junit-jupiter-api:5.0.0-M1")
-    testRuntime("org.junit.vintage:junit-vintage-engine:4.12.0-M1")
+    testCompile 'junit:junit:4.12'
+    compile 'junit:junit:4.12'
 }
 
 
@@ -32,3 +32,10 @@ sourceSets {
         }
     }
 }
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
+
