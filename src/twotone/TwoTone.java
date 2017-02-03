@@ -22,13 +22,13 @@ public class TwoTone {
 		System.load(System.getProperty("java.library.path"));
 		//System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
+		//Create and display original image
 		String imagePath = "src/test/resources/randomimages/";
 		String imageName = "ReceiptSwiss.jpeg";
 		String file = imagePath + imageName;
-
 		Mat image = Imgcodecs.imread(file);
-		image = resize(image, 600, 600);
-		displayImage(matToImage(image), "Original");
+		Mat resizedImage = resize(image, 600, 600);
+		displayImage(matToImage(resizedImage), "Original");
 
 //		Mat hsvImage = new Mat();
 //		Imgproc.cvtColor(image, hsvImage, Imgproc.COLOR_BGR2HSV);
@@ -36,6 +36,7 @@ public class TwoTone {
 //		Core.inRange(hsvImage, new Scalar(0,0,100), new Scalar (255,255,255), hsvImage);
 //		displayImage(matToImage(hsvImage), "In range HSV");
 
+		// Make two tone image and save to disk
 		int v0 = 200;
 		int v1 = 200;
 		int v2 = 200;
@@ -43,7 +44,11 @@ public class TwoTone {
 		BufferedImage processedImage = matToImage(image);
 		saveImage(processedImage, imageName.substring(0, imageName.indexOf('.')),
 				v0 + "_" + v1 + "_" + v2);
-		displayImage(processedImage, "In range original");
+
+		//Resize and show processed image
+		Mat resizedProcessedMat = resize(image, 600, 600);
+		BufferedImage resizedProcessedImage = matToImage(resizedProcessedMat);
+		displayImage(resizedProcessedImage, "In range original");
 	}
 
 	// Save an image to disk
