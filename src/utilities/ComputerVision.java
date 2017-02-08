@@ -1,18 +1,14 @@
 package utilities;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.io.File;
 import java.net.URI;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -28,22 +24,33 @@ import org.apache.http.util.EntityUtils;
 
 public class ComputerVision {
 
+
     /*
-
-    Usage from Main class:
-
-    Map<String,String> result = ComputerVision.getRelevantEntries("kvitto2.gif");
-    for (HashMap.Entry<String,String> entry : result.entrySet()){
-        System.out.println(entry.getKey()+": "+entry.getValue());
-    }
-
-    */
-
+    Map<String,Integer> trialResult = ComputerVision.getRelevantEntriesWithoutFiltration("kvitto.png");
+        trialResult = ComputerVision.sortByValue(trialResult);
+        for (HashMap.Entry<String,Integer> entry : trialResult.entrySet()){
+            System.out.println(entry.getKey()+": "+entry.getValue());
+        }
+     */
+    /*
+    Returns a Map with the best guess according to Bokios system for TotalSum, Vat and Date.
+    Can easily be extended to include more guesses.
+     */
     public static Map<String, String> getRelevantEntries(String fileName){
         String jsonResult = executePostBinary(fileName);
         String bokioResult = callBokioJsonInterpreterEndpoint(jsonResult);
         return filterInterpretedOutput(bokioResult);
     }
+
+    /*
+    Returns a Map with all words and the number of times it occurs in the json response
+     */
+    public static Map<String,Integer> getRelevantEntriesWithoutFiltration(String fileName){
+        String jsonResult = executePostBinary(fileName);
+        String bokioResult = callBokioJsonInterpreterEndpoint(jsonResult);
+        return processWholeString(bokioResult);
+    }
+
     private static String executePostBinary(String fileName){
         HttpClient httpclient = HttpClients.createDefault();
 
@@ -126,7 +133,6 @@ public class ComputerVision {
         Set<Map.Entry<String, JsonElement>> entries = innerJsonObject.entrySet();
         Map<String, String> resultMap = new HashMap<>();
 
-
         for (Map.Entry<String, JsonElement> innerEntry: entries) {
             String keyVal = innerEntry.getKey();
 
@@ -149,6 +155,48 @@ public class ComputerVision {
             }
         }
         return resultMap;
+    }
+
+    private static Map<String,Integer> processWholeString(String bokioResult){
+        JsonObject jsonObject = new JsonParser().parse(bokioResult).getAsJsonObject();
+        JsonElement el = jsonObject.get("InterpreterResult");
+        JsonObject innerJsonObject = new JsonParser().parse(el.toString()).getAsJsonObject();
+
+        Set<Map.Entry<String, JsonElement>> entries = innerJsonObject.entrySet();
+        Map<String, Integer> resultMap = new HashMap<>();
+
+        for (Map.Entry<String, JsonElement> innerEntry: entries) {
+            String keyVal = innerEntry.getKey();
+            if (keyVal.equals("All")) {
+                JsonArray jsonChild = new JsonParser().parse(innerEntry.getValue().toString()).getAsJsonArray();
+                JsonElement childEl = jsonChild.get(0);
+                int length = jsonChild.size();
+
+                for (JsonElement element: jsonChild) {
+                    JsonObject jsonObj = new JsonParser().parse(element.toString()).getAsJsonObject();
+                    String childVal = jsonObj.get("Text").getAsString();
+                    if (resultMap.containsKey(childVal)) {
+                        int temp = resultMap.get(childVal).intValue();
+                        resultMap.put(childVal, temp + 1);
+                    } else {
+                        resultMap.put(childVal, 1);
+                    }
+                }
+            }
+        }
+        return resultMap;
+    }
+
+    public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
+        return map.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue(Collections.reverseOrder()))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
     }
 
     private static byte[] getByteArrayFromFile(String fileName){
