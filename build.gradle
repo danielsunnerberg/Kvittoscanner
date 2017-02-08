@@ -17,6 +17,8 @@ dependencies {
     compile name: 'opencv-320'
     testCompile 'junit:junit:4.12'
     compile 'junit:junit:4.12'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'org.apache.httpcomponents:httpclient:4.4-alpha1'
 }
 
 
