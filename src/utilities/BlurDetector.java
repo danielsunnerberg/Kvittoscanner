@@ -48,25 +48,9 @@ public class BlurDetector {
      */
     public static Map<MatPos, Double> getVarianceMap(String file, int divide) {
 
-        Map<MatPos, Double> map = new HashMap<>();
-
         Mat imageMat = Imgcodecs.imread(file);
 
-        int rows = imageMat.rows();
-        int cols = imageMat.cols();
-
-        for(int i = 0; i < divide; i++) {
-
-            Mat rowMat = imageMat.rowRange(i * rows / divide, (i + 1) * rows / divide);
-
-            for(int j = 0; j < divide; j++) {
-
-                Mat colMat = rowMat.colRange(j * cols / divide, (j + 1) * cols / divide);
-                double var = getVariance(colMat);
-
-                map.put(new MatPos(colMat, i, j, var), var);
-            }
-        }
+        Map<MatPos, Double> map = getVarianceMap(imageMat, divide);
 
         return map;
     }
