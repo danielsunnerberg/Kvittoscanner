@@ -58,16 +58,12 @@ public class BlurDetectorTest {
 
         int divide = 4;
 
-        Map<BlurDetector.MatPos, Double> map = BlurDetector.getVarianceMap(path, divide);
+        List<MatPos> list = BlurDetector.getVarianceList(path, divide);
 
         // Should contain 4 rows and 4 cols, total 16 elements
-        assertEquals(divide * divide, map.size());
+        assertEquals(divide * divide, list.size());
 
-        for (Map.Entry<BlurDetector.MatPos, Double> entry : map.entrySet()) {
-
-            BlurDetector.MatPos matPos = entry.getKey();
-
-            assertEquals(entry.getValue(), matPos.getVar(), 0.0001);
+        for (MatPos matPos : list) {
 
             assertTrue(matPos.getMat() != null);
             assertTrue(matPos.getX() >= 0 && matPos.getY() >= 0);
