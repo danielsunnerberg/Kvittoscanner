@@ -13,7 +13,7 @@ public class VideoSplitter {
      * Loads the video at the provided location and extracts a specified number of evenly distributed
      * frames from it.
      *
-     * @param sourcePath string to path of video
+     * @param sourcePath     string to path of video
      * @param requiredFrames If 0, all frames. Otherwise, the frames will be evenly distributed across the video
      * @return extracted frames
      */
@@ -28,12 +28,13 @@ public class VideoSplitter {
      * Extracts a specified number of evenly distributed frames from the provided video capture.
      * This method will not release the given capture.
      *
-     * @param capture capture containing video
+     * @param capture        capture containing video
      * @param requiredFrames If 0, all frames. Otherwise, the frames will be evenly distributed across the video
      * @return extracted frames
      */
     public static List<Mat> getFrames(VideoCapture capture, int requiredFrames) {
-        final Mat mat = new Mat();
+        Mat mat = new Mat();
+
 
         final double frameCount = capture.get(Videoio.CAP_PROP_FRAME_COUNT);
         int frameDelay = 0;
@@ -42,10 +43,14 @@ public class VideoSplitter {
         }
 
         List<Mat> frames = new ArrayList<>();
-        while (capture.read(mat)) {
+        while (capture.grab()) {
+
             if (requiredFrames > 0 && frames.size() >= requiredFrames) {
                 break;
             }
+
+            mat = new Mat();
+            capture.retrieve(mat);
 
             frames.add(mat);
 
@@ -58,5 +63,6 @@ public class VideoSplitter {
         mat.release();
         return frames;
     }
+
 
 }
