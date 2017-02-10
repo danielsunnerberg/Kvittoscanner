@@ -44,15 +44,15 @@ public class BlurDetector {
      *
      * @param file the name of the image
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a map containing MatPos and variance value for each subsection.
+     * @return a map containing utilities.MatPos and variance value for each subsection.
      */
-    public static Map<MatPos, Double> getVarianceMap(String file, int divide) {
+    public static List<MatPos> getVarianceList(String file, int divide) {
 
         Mat imageMat = Imgcodecs.imread(file);
 
-        Map<MatPos, Double> map = getVarianceMap(imageMat, divide);
+        List<MatPos> list = getVarianceList(imageMat, divide);
 
-        return map;
+        return list;
     }
 
     /**
@@ -60,11 +60,11 @@ public class BlurDetector {
      *
      * @param imageMat the mat from the image
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a map containing MatPos and variance value for each subsection.
+     * @return a map containing utilities.MatPos and variance value for each subsection.
      */
-    public static Map<MatPos, Double> getVarianceMap(Mat imageMat, int divide) {
+    public static List<MatPos> getVarianceList(Mat imageMat, int divide) {
 
-        Map<MatPos, Double> map = new HashMap<>();
+        List<MatPos> list = new LinkedList<>();
 
         int rows = imageMat.rows();
         int cols = imageMat.cols();
@@ -78,17 +78,17 @@ public class BlurDetector {
                 Mat colMat = rowMat.colRange(j * cols / divide, (j + 1) * cols / divide);
                 double var = getVariance(colMat);
 
-                map.put(new MatPos(colMat, i, j, var), var);
+                list.add(new MatPos(colMat, i, j, var));
             }
         }
 
-        return map;
+        return list;
     }
 
     /**
      * This method is only used to create a image too look at to check results for yourself.
      *
-     * @param frame the list contingig the mats with the highest variance.
+     * @param frame the list containing the mats with the highest variance.
      * @void
      */
     private static void mat2Image(Mat frame) throws IOException {
@@ -126,23 +126,21 @@ public class BlurDetector {
      */
     public static Mat createImage(List<Mat> frames, int divide) {
 
-        List<Map<MatPos, Double>> varianceMapList = new LinkedList<>();
+        List<List<MatPos>> varianceLists = new LinkedList<>();
 
         for(Mat mat : frames) {
-            varianceMapList.add(getVarianceMap(mat, divide));
+            varianceLists.add(getVarianceList(mat, divide));
         }
 
         MatPos[][] list = new MatPos[divide][divide];
 
-        for(Map<MatPos, Double> map : varianceMapList) {
+        for(List<MatPos> l : varianceLists) {
 
-            for (Map.Entry<MatPos, Double> entry : map.entrySet()) {
-
-                MatPos matPos = entry.getKey();
+            for (MatPos matPos : l) {
 
                 System.out.println(matPos.getVar());
 
-                double variance = entry.getValue();
+                double variance = matPos.getVar();
 
                 if(list[matPos.getY()][matPos.getX()] == null) {
                     list[matPos.getY()][matPos.getX()] = matPos;
@@ -169,9 +167,9 @@ public class BlurDetector {
     /**
      * Merge the subsections of the original image back to a big image again.
      *
-     * @param mats the list contingig the mats with the highest variance.
+     * @param mats the list containing the mats with the highest variance.
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a map containing MatPos and variance value for each subsection.
+     * @return a map containing utilities.MatPos and variance value for each subsection.
      */
     private static Mat mergeMats(MatPos[][] mats, int divide) {
 
@@ -200,36 +198,18 @@ public class BlurDetector {
         return res;
     }
 
-    public static class MatPos {
+    /**
+     * Create a black and white version of a image.
+     *
+     * @param imageMat the image in for of a mat
+     * @return the same mat but in black and white
+     */
+    public static Mat makeBlackAndWhite(Mat imageMat) {
 
-        private Mat mat;
-        private int x;
-        private int y;
-        private double var;
+        Mat matGray = new Mat();
 
-        public MatPos(Mat mat, int x, int y, double var) {
-            this.mat = mat;
-            this.x = x;
-            this.y = y;
-            this.var = var;
-        }
+        Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
 
-        public Mat getMat() {
-            return mat;
-        }
-
-        public int getX() {
-            return x;
-        }
-
-        public int getY() {
-            return y;
-        }
-
-        public double getVar() {
-            return var;
-        }
-
+        return matGray;
     }
-
 }
