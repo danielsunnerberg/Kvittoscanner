@@ -122,23 +122,13 @@ public class BlurDetector {
      *
      * @param frames the list containing the mats.
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @param size how many elements the list with the least blurray mats will contain
      * @return a Mat with all the best parts for all different frames
      */
-    public static Mat createImage(List<Mat> frames, int divide, int size) {
-
-        List<Mat> bestFrames;
-
-        if(size > 0) {
-            bestFrames = getBestFrames(frames, size);
-        }
-        else {
-            bestFrames = frames;
-        }
+    public static Mat createImage(List<Mat> frames, int divide) {
 
         List<List<MatPos>> varianceLists = new LinkedList<>();
 
-        for(Mat mat : bestFrames) {
+        for(Mat mat : frames) {
             varianceLists.add(getVarianceList(mat, divide));
         }
 
@@ -172,18 +162,6 @@ public class BlurDetector {
         }
 
         return outMat;
-    }
-
-    /**
-     * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
-     * the best parts.
-     *
-     * @param frames the list containing the mats.
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a Mat with all the best parts for all different frames.
-     */
-    public static Mat createImage(List<Mat> frames, int divide) {
-        return createImage(frames, divide, 0);
     }
 
     /**
