@@ -26,7 +26,6 @@ public class EdgeDetector {
         // Apply threshold
         Mat threshOut = new Mat();
         final int thresh = findThresholdValue(source);
-        System.out.println("Got thresh: " + thresh);
         threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
 
         List<MatOfPoint> contours = new ArrayList<>();

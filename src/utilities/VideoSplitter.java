@@ -33,10 +33,10 @@ public class VideoSplitter {
      * @return extracted frames
      */
     public static List<Mat> getFrames(VideoCapture capture, int requiredFrames) {
-        Mat mat = new Mat();
-
+        Mat mat;
 
         final double frameCount = capture.get(Videoio.CAP_PROP_FRAME_COUNT);
+
         int frameDelay = 0;
         if (requiredFrames > 0 && requiredFrames <= frameCount) {
             frameDelay = (int) Math.round((frameCount - requiredFrames) / requiredFrames);
@@ -44,23 +44,27 @@ public class VideoSplitter {
 
         List<Mat> frames = new ArrayList<>();
         while (capture.grab()) {
-
             if (requiredFrames > 0 && frames.size() >= requiredFrames) {
                 break;
             }
 
             mat = new Mat();
-            capture.retrieve(mat);
+            capture.read(mat);
+
+            if (mat.empty()) {
+                // Empty frame; probably end of file
+                break;
+            }
 
             frames.add(mat);
 
             for (int delay = 0; delay < frameDelay; delay++) {
                 // Read and discard frames
-                capture.read(mat);
+                capture.read(new Mat());
             }
         }
 
-        mat.release();
+        capture.release();
         return frames;
     }
 
