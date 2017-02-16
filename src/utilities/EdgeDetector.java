@@ -16,18 +16,18 @@ public class EdgeDetector {
      * Finds a polygon surrounding the biggest object in the image.
      *
      * @param source Source to analyze
-     * @return Points forming a polygon which encloses the biggest object in the image. May be null.
+     * @return Points forming a polygon which encloses the biggest object in the image.
      */
     public MatOfPoint findBoundingPolygon(Mat source) {
-        // @todo Canny before?
         // Convert to black and white
         Mat blackWhite = new Mat();
         cvtColor(source, blackWhite, COLOR_BGR2GRAY);
 
         // Apply threshold
-        // @todo Inject / detect which threshold to use?
         Mat threshOut = new Mat();
-        threshold(blackWhite, threshOut, 100, 255, THRESH_BINARY);
+        final int thresh = findThresholdValue(source);
+        System.out.println("Got thresh: " + thresh);
+        threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
 
         List<MatOfPoint> contours = new ArrayList<>();
         Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
@@ -41,6 +41,17 @@ public class EdgeDetector {
                 maxArea = area;
                 maxContour = contour;
             }
+        }
+
+        if (maxContour == null) {
+            // No contour found (one colored image?). Hence, the original image is already bounded.
+            Size size = source.size();
+            return new MatOfPoint(
+                new Point(0, 0),
+                new Point(size.width, 0),
+                new Point(size.width, size.height),
+                new Point(0, size.height)
+            );
         }
 
         return maxContour;
@@ -57,6 +68,12 @@ public class EdgeDetector {
         return boundingRect(contour);
     }
 
+    /**
+     * Extracts the biggest object found in the image.
+     *
+     * @param source Source to analyze
+     * @return A new Mat, consisting only of the found object.
+     */
     public Mat extractBiggestObject(Mat source) {
         Rect bounds = findBoundingRect(source);
         return new Mat(source, bounds);
@@ -74,6 +91,15 @@ public class EdgeDetector {
         Imgproc.warpPerspective(imageMat, rotated_image, perspectiveTransform, new Size(imageMat.width(),imageMat.height()));
         Mat cropped_image = rotated_image.submat((int)p1.y, imageMat.height(), (int)p1.x, imageMat.width());
         return cropped_image;
+    }
+
+    private int findThresholdValue(Mat source) {
+        final double contrast = new ContrastDetector().calculateContrast(source);
+        // We want to convert the contrast value to a threshold value, [0, 255].
+        // Some testing of images with various contrast and which threshold they needed
+        // gave the following points: fit {1.1, 240}, {2.5, 100}, {5, 0}, where (x = contrast, y = threshold).
+        // Creating a fit gives the following function, which gives us our threshold:
+        return (int) (-157.763 * Math.log(0.204531 * contrast));
     }
 
     /*
