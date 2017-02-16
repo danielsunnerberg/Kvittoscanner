@@ -1,13 +1,12 @@
 package utilities;
 
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Rect;
+import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.opencv.core.CvType.CV_32FC2;
 import static org.opencv.imgproc.Imgproc.*;
 import static org.opencv.imgproc.Imgproc.boundingRect;
 
@@ -61,6 +60,20 @@ public class EdgeDetector {
     public Mat extractBiggestObject(Mat source) {
         Rect bounds = findBoundingRect(source);
         return new Mat(source, bounds);
+    }
+
+    public Mat skewMat(Mat imageMat, Point p1, Point p2, Point p3, Point p4)
+    {
+        Mat src = new Mat(4,1,CV_32FC2);
+        src.put(0,0, (int)p2.x,(int)p2.y, (int)p3.x,(int)p3.y, (int)p4.x,(int)p4.y);
+        Mat dst = new Mat(4,1,CV_32FC2);
+        dst.put(0,0, imageMat.width(),(int)p1.y, 0,imageMat.height(), imageMat.width(),imageMat.height());
+
+        Mat perspectiveTransform = Imgproc.getPerspectiveTransform(src, dst);
+        Mat rotated_image = imageMat.clone();
+        Imgproc.warpPerspective(imageMat, rotated_image, perspectiveTransform, new Size(imageMat.width(),imageMat.height()));
+        Mat cropped_image = rotated_image.submat((int)p1.y, imageMat.height(), (int)p1.x, imageMat.width());
+        return cropped_image;
     }
 
     /*
