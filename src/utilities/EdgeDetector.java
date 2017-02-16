@@ -13,11 +13,17 @@ import static org.opencv.imgproc.Imgproc.boundingRect;
 
 public class EdgeDetector {
 
-    public MatOfPoint findBoundingPolygon(Mat sourceImage) {
+    /**
+     * Finds a polygon surrounding the biggest object in the image.
+     *
+     * @param source Source to analyze
+     * @return Points forming a polygon which encloses the biggest object in the image. May be null.
+     */
+    public MatOfPoint findBoundingPolygon(Mat source) {
         // @todo Canny before?
         // Convert to black and white
         Mat blackWhite = new Mat();
-        cvtColor(sourceImage, blackWhite, COLOR_BGR2GRAY);
+        cvtColor(source, blackWhite, COLOR_BGR2GRAY);
 
         // Apply threshold
         // @todo Inject / detect which threshold to use?
@@ -25,7 +31,6 @@ public class EdgeDetector {
         threshold(blackWhite, threshOut, 100, 255, THRESH_BINARY);
 
         List<MatOfPoint> contours = new ArrayList<>();
-        // @todo Maybe Imgproc.RETR_LIST -> Imgproc.RETR_EXTERNAL?
         Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
         // Find contour with biggest area
@@ -42,9 +47,20 @@ public class EdgeDetector {
         return maxContour;
     }
 
-    public Rect findBoundingRect(Mat sourceImage) {
-        MatOfPoint contour = findBoundingPolygon(sourceImage);
+    /**
+     * Finds a bounding rectangle which surrounds the biggest object in the image.
+     *
+     * @param source Source to analyze
+     * @return Rectangle which encloses the biggest object in the image
+     */
+    public Rect findBoundingRect(Mat source) {
+        MatOfPoint contour = findBoundingPolygon(source);
         return boundingRect(contour);
+    }
+
+    public Mat extractBiggestObject(Mat source) {
+        Rect bounds = findBoundingRect(source);
+        return new Mat(source, bounds);
     }
 
     /*
