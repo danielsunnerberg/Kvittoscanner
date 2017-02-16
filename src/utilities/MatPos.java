@@ -7,7 +7,7 @@ import java.util.Comparator;
 /**
  * Created by jacobth on 2017-02-10.
  */
-public class MatPos implements Comparator<MatPos>{
+public class MatPos implements Comparable<MatPos> {
 
     private Mat mat;
     private int x;
@@ -43,7 +43,7 @@ public class MatPos implements Comparator<MatPos>{
     }
 
     @Override
-    public int compare(MatPos o1, MatPos o2) {
-        return Double.compare(o1.getVar(), o2.getVar());
+    public int compareTo(MatPos o) {
+        return Double.compare(getVar(), o.getVar());
     }
 }
