@@ -122,13 +122,23 @@ public class BlurDetector {
      *
      * @param frames the list containing the mats.
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a Mat with all the best parts for all different frames.
+     * @param size how many elements the list with the least blurray mats will contain
+     * @return a Mat with all the best parts for all different frames
      */
-    public static Mat createImage(List<Mat> frames, int divide) {
+    public static Mat createImage(List<Mat> frames, int divide, int size) {
+
+        List<Mat> bestFrames;
+
+        if(size > 0) {
+            bestFrames = getBestFrames(frames, size);
+        }
+        else {
+            bestFrames = frames;
+        }
 
         List<List<MatPos>> varianceLists = new LinkedList<>();
 
-        for(Mat mat : frames) {
+        for(Mat mat : bestFrames) {
             varianceLists.add(getVarianceList(mat, divide));
         }
 
@@ -162,6 +172,18 @@ public class BlurDetector {
         }
 
         return outMat;
+    }
+
+    /**
+     * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
+     * the best parts.
+     *
+     * @param frames the list containing the mats.
+     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
+     * @return a Mat with all the best parts for all different frames.
+     */
+    public static Mat createImage(List<Mat> frames, int divide) {
+        return createImage(frames, divide, 0);
     }
 
     /**
@@ -211,5 +233,30 @@ public class BlurDetector {
         Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
 
         return matGray;
+    }
+
+    /**
+     * A method the get the best least blurry mats.
+     *
+     * @param frames the list with the different mats
+     * @param size the number of mats the list will contain
+     * @return the list that contains the least blurry mats
+     */
+    public static List<Mat> getBestFrames(List<Mat> frames, int size) {
+
+        List<Mat> bestFrames = new LinkedList<>();
+        Queue<MatPos> pq = new PriorityQueue<>();
+
+        for(Mat mat : frames) {
+            double var = getVariance(mat);
+            pq.add(new MatPos(mat, var));
+        }
+
+        for(int i = 0; i < size; i++) {
+            Mat mat = pq.poll().getMat();
+            bestFrames.add(mat);
+        }
+
+        return bestFrames;
     }
 }
