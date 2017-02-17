@@ -34,7 +34,6 @@ public class VideoSplitter {
      */
     public static List<Mat> getFrames(VideoCapture capture, int requiredFrames) {
         Mat mat;
-
         final double frameCount = capture.get(Videoio.CAP_PROP_FRAME_COUNT);
 
         int frameDelay = 0;
@@ -49,7 +48,7 @@ public class VideoSplitter {
             }
 
             mat = new Mat();
-            capture.read(mat);
+            capture.retrieve(mat);
 
             if (mat.empty()) {
                 // Empty frame; probably end of file
