@@ -18,7 +18,7 @@ public class EdgeDetector {
      * @param source Source to analyze
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    public MatOfPoint findBoundingPolygon(Mat source) {
+    private MatOfPoint findBoundingPolygon(Mat source) {
         // Convert to black and white
         Mat blackWhite = new Mat();
         cvtColor(source, blackWhite, COLOR_BGR2GRAY);
