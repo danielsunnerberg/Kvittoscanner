@@ -26,6 +26,7 @@ public class BlurDetector {
         Mat matOut = new Mat();
         Mat matGray = new Mat();
 
+        //Convert the mat to grey scale.
         Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
         Imgproc.Laplacian(matGray, matOut, 3);
 
@@ -34,6 +35,7 @@ public class BlurDetector {
 
         Core.meanStdDev(matOut, median, std);
 
+        //The variance is the median^2
         double var = Math.pow(std.get(0, 0)[0], 2);
 
         return var;
@@ -70,50 +72,20 @@ public class BlurDetector {
         int cols = imageMat.cols();
 
         for(int i = 0; i < divide; i++) {
-
+            //Split the mat in a row
             Mat rowMat = imageMat.rowRange(i * rows / divide, (i + 1) * rows / divide);
 
             for(int j = 0; j < divide; j++) {
-
+                //Split the current row in to columns
                 Mat colMat = rowMat.colRange(j * cols / divide, (j + 1) * cols / divide);
                 double var = getVariance(colMat);
 
+                //Add the new smaller mat with the position and its variance to the list
                 list.add(new MatPos(colMat, i, j, var));
             }
         }
 
         return list;
-    }
-
-    /**
-     * This method is only used to create a image too look at to check results for yourself.
-     *
-     * @param frame the list containing the mats with the highest variance.
-     * @void
-     */
-    private static void mat2Image(Mat frame) throws IOException {
-
-        MatOfByte buffer = new MatOfByte();
-
-        Imgcodecs.imencode(".png", frame, buffer);
-
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer.toArray());
-
-        File newFile = new File("test.png");
-        FileOutputStream fos = new FileOutputStream(newFile);
-        int data;
-
-        while((data = byteArrayInputStream.read()) != -1)
-        {
-            char ch = (char)data;
-            try {
-                fos.write(ch);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        fos.flush();
-        fos.close();
     }
 
     /**
@@ -126,6 +98,7 @@ public class BlurDetector {
      */
     public static Mat createImage(List<Mat> frames, int divide) {
 
+        //A list that will contain all the other frames with their splitted parts.
         List<List<MatPos>> varianceLists = new LinkedList<>();
 
         for(Mat mat : frames) {
@@ -138,14 +111,16 @@ public class BlurDetector {
 
             for (MatPos matPos : l) {
 
-                System.out.println(matPos.getVar());
+                //System.out.println(matPos.getVar());
 
                 double variance = matPos.getVar();
 
+                //Is the position empty?
                 if(list[matPos.getY()][matPos.getX()] == null) {
                     list[matPos.getY()][matPos.getX()] = matPos;
                 }
 
+                //Is the position containing a submat with a lower variance than the current submat?
                 else if(list[matPos.getY()][matPos.getX()].getVar() < variance) {
 
                     list[matPos.getY()][matPos.getX()] = matPos;
@@ -154,12 +129,6 @@ public class BlurDetector {
         }
 
         Mat outMat = mergeMats(list, divide);
-
-        try {
-            mat2Image(outMat);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         return outMat;
     }
@@ -173,26 +142,28 @@ public class BlurDetector {
      */
     private static Mat mergeMats(MatPos[][] mats, int divide) {
 
+        //A list that will contain all the columns
         List<Mat> colList = new LinkedList<>();
         Mat res = new Mat();
 
         for(int i = 0; i < divide; i++) {
 
             Mat row = new Mat();
+            //A list that will contain all the rows
             List<Mat> rowList = new LinkedList<>();
 
             for(int j = 0; j < divide; j++) {
 
                 Mat m = mats[i][j].getMat();
-
-             //   System.out.println("rows: " + m.rows() + " cols: " + m.cols() + " type: " + m.type() + " variance: " + mats[i][j].getVar());
                 rowList.add(m);
             }
 
+            //Merge this row together
             Core.vconcat(rowList, row);
             colList.add(row);
         }
 
+        //Merge all the columns from the rows tigheter
         Core.hconcat(colList, res);
 
         return res;
@@ -204,7 +175,7 @@ public class BlurDetector {
      * @param imageMat the image in for of a mat
      * @return the same mat but in black and white
      */
-    public static Mat makeBlackAndWhite(Mat imageMat) {
+    public static Mat greyScale(Mat imageMat) {
 
         Mat matGray = new Mat();
 
@@ -225,11 +196,13 @@ public class BlurDetector {
         List<Mat> bestFrames = new LinkedList<>();
         Queue<MatPos> pq = new PriorityQueue<>();
 
+        //Add all mats to the priority queue
         for(Mat mat : frames) {
             double var = getVariance(mat);
             pq.add(new MatPos(mat, var));
         }
 
+        //Take out size elemtns that have the highest variance
         for(int i = 0; i < size; i++) {
             Mat mat = pq.poll().getMat();
             bestFrames.add(mat);

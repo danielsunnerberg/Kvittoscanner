@@ -2,15 +2,20 @@ package utilities;
 
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.opencv.core.CvType.CV_32FC2;
 import static org.opencv.imgproc.Imgproc.*;
-import static org.opencv.imgproc.Imgproc.boundingRect;
 
 public class EdgeDetector {
+
+    private final int MAT_WIDTH = 500;
+    private final int MAT_HEIGHT = 1000;
+    private final int NUM_CORNERS = 4;
 
     /**
      * Finds a polygon surrounding the biggest object in the image.
@@ -18,7 +23,8 @@ public class EdgeDetector {
      * @param source Source to analyze
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    private MatOfPoint findBoundingPolygon(Mat source) {
+
+    private MatOfPoint2f findBoundingPolygon(Mat source) {
         // Convert to black and white
         Mat blackWhite = new Mat();
         cvtColor(source, blackWhite, COLOR_BGR2GRAY);
@@ -31,21 +37,33 @@ public class EdgeDetector {
         List<MatOfPoint> contours = new ArrayList<>();
         Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
+        MatOfPoint2f approxCurve = new MatOfPoint2f();
+
         // Find contour with biggest area
         MatOfPoint maxContour = null;
         double maxArea = 0;
+
         for (MatOfPoint contour : contours) {
             double area = Imgproc.contourArea(contour);
+
             if (area > maxArea) {
-                maxArea = area;
-                maxContour = contour;
+                MatOfPoint2f tmpMat = new MatOfPoint2f(contour.toArray() );
+                MatOfPoint2f aCurve = new MatOfPoint2f();
+                Imgproc.approxPolyDP(tmpMat, aCurve, contour.total() * 0.05, true);
+
+                //See if we got 4 corners in the approximation
+                if (aCurve.total() == NUM_CORNERS) {
+                    maxArea = area;
+                    maxContour = contour;
+                    approxCurve = aCurve;
+                }
             }
         }
 
         if (maxContour == null) {
             // No contour found (one colored image?). Hence, the original image is already bounded.
             Size size = source.size();
-            return new MatOfPoint(
+            return new MatOfPoint2f(
                 new Point(0, 0),
                 new Point(size.width, 0),
                 new Point(size.width, size.height),
@@ -53,18 +71,29 @@ public class EdgeDetector {
             );
         }
 
-        return maxContour;
+        return approxCurve;
     }
 
     /**
-     * Finds a bounding rectangle which surrounds the biggest object in the image.
+     * Finds a polygon surrounding the biggest object in the image.
      *
      * @param source Source to analyze
-     * @return Rectangle which encloses the biggest object in the image
+     * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    public Rect findBoundingRect(Mat source) {
-        MatOfPoint contour = findBoundingPolygon(source);
-        return boundingRect(contour);
+    private Mat getCornerMat(Mat source) {
+        MatOfPoint2f approxCurve = findBoundingPolygon(source);
+
+        //Create a mat with perspective to the 4 corners we get from previous approximation
+        double[] points;
+        List<Point> corners = new ArrayList<>();
+
+        for(int i = 0; i < NUM_CORNERS; i++) {
+            points = approxCurve.get(i,0);
+            Point p = new Point(points[0], points[1]);
+            corners.add(p);
+        }
+
+        return Converters.vector_Point2f_to_Mat(corners);
     }
 
     /**
@@ -74,12 +103,13 @@ public class EdgeDetector {
      * @return A new Mat, consisting only of the found object.
      */
     public Mat extractBiggestObject(Mat source) {
-        Rect bounds = findBoundingRect(source);
-        return new Mat(source, bounds);
+        Mat mat = getCornerMat(source);
+        Mat out = skew(source, mat);
+
+        return out;
     }
 
-    public Mat skewMat(Mat imageMat, Point p1, Point p2, Point p3, Point p4)
-    {
+    public Mat skewMat(Mat imageMat, Point p1, Point p2, Point p3, Point p4) {
         Mat src = new Mat(4,1,CV_32FC2);
         src.put(0,0, (int)p2.x,(int)p2.y, (int)p3.x,(int)p3.y, (int)p4.x,(int)p4.y);
         Mat dst = new Mat(4,1,CV_32FC2);
@@ -119,4 +149,28 @@ public class EdgeDetector {
         Imgcodecs.imwrite("C:\\Users\\daniel-windevbox\\Desktop\\fozo-rect.png", img);
      */
 
+    /**
+     * Skews the source image according to where we have our corners.
+     *
+     * @param imgSrc The image source to be skewed.
+     * @param start The mat that contains the corners from the source.
+     * @return A skewed mat according to where the corner points were.
+     */
+    public Mat skew(Mat imgSrc, Mat start) {
+        //Set the mat to a standard size to make sure all images get the same size.
+        Mat out = new Mat(MAT_WIDTH, MAT_HEIGHT, CvType.CV_8UC1);
+
+        Point p1 = new Point(MAT_WIDTH, 0);
+        Point p2 = new Point(0, 0);
+        Point p3 = new Point(0, MAT_HEIGHT);
+        Point p4 = new Point(MAT_WIDTH, MAT_HEIGHT);
+
+        List<Point> points = Arrays.asList(p1, p2, p3, p4);
+        Mat end = Converters.vector_Point2f_to_Mat(points);
+
+        Mat perspectiveTransform = Imgproc.getPerspectiveTransform(start, end);
+        Imgproc.warpPerspective(imgSrc, out, perspectiveTransform, new Size(MAT_WIDTH, MAT_HEIGHT), Imgproc.INTER_CUBIC);
+
+        return out;
+    }
 }
