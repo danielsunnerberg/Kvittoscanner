@@ -23,7 +23,6 @@ public class EdgeDetector {
      * @param source Source to analyze
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-
     private MatOfPoint2f findBoundingPolygon(Mat source) {
         // Convert to black and white
         Mat blackWhite = new Mat();
@@ -64,10 +63,10 @@ public class EdgeDetector {
             // No contour found (one colored image?). Hence, the original image is already bounded.
             Size size = source.size();
             return new MatOfPoint2f(
-                new Point(0, 0),
-                new Point(size.width, 0),
-                new Point(size.width, size.height),
-                new Point(0, size.height)
+                    new Point(0, 0),
+                    new Point(size.width, 0),
+                    new Point(size.width, size.height),
+                    new Point(0, size.height)
             );
         }
 

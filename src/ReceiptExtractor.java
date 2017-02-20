@@ -12,7 +12,7 @@ public class ReceiptExtractor {
 
     // @todo Set these constants based on the video itself?
     private final static int NUM_SPLITTED_FRAMES = 50;
-    private final static int NUM_IMAGE_PIECES = 4;
+    private final static int NUM_IMAGE_PIECES = 2;
 
     private EdgeDetector edgeDetector = new EdgeDetector();
 
@@ -20,7 +20,7 @@ public class ReceiptExtractor {
 
         // Split the video to frames and select the best frames.
         List<Mat> frames = VideoSplitter.getFrames(source, NUM_SPLITTED_FRAMES);
-        frames = BlurDetector.getBestFrames(frames, frames.size() / 2);
+        frames = BlurDetector.getBestFrames(frames, frames.size() / 4);
 
         System.out.println(frames.size());
 
