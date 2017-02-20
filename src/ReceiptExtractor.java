@@ -12,7 +12,7 @@ public class ReceiptExtractor {
 
     // @todo Set these constants based on the video itself?
     private final static int NUM_SPLITTED_FRAMES = 50;
-    private final static int NUM_IMAGE_PIECES = 2;
+    private final static int NUM_IMAGE_PIECES = 4;
 
     private EdgeDetector edgeDetector = new EdgeDetector();
 
@@ -22,12 +22,16 @@ public class ReceiptExtractor {
         List<Mat> frames = VideoSplitter.getFrames(source, NUM_SPLITTED_FRAMES);
         frames = BlurDetector.getBestFrames(frames, frames.size() / 2);
 
+        System.out.println(frames.size());
+
         // Extract the receipt from the frames
         List<Mat> receipts = new ArrayList<>();
+        int x = 0;
         for (Mat frame : frames) {
             Mat receipt = edgeDetector.extractBiggestObject(frame);
             System.out.println(receipt.size());
 
+        //    Imgcodecs.imwrite("C:/Users/jacobth/Pictures/Camera Roll/rec" + (x++) + ".png", receipt);
             // Skew each receipt to make them align
             // @todo Skew + make sure all images have exactly same size.
             // @todo How to re-size without loosing perspective?
@@ -38,5 +42,4 @@ public class ReceiptExtractor {
         // Merge receipts into super-image
         return BlurDetector.createImage(receipts, NUM_IMAGE_PIECES);
     }
-
 }

@@ -44,6 +44,6 @@ public class MatPos implements Comparable<MatPos> {
 
     @Override
     public int compareTo(MatPos o) {
-        return Double.compare(getVar(), o.getVar());
+        return Double.compare(o.getVar(), getVar());
     }
 }
