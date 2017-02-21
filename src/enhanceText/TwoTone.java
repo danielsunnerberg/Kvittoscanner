@@ -1,4 +1,4 @@
-package twotone;
+package enhanceText;
 
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
