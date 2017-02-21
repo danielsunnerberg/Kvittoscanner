@@ -23,7 +23,7 @@ public class EdgeDetector {
      * @param source Source to analyze
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    private MatOfPoint2f findBoundingPolygon(Mat source) {
+    MatOfPoint2f findBoundingPolygon(Mat source) {
         // Convert to black and white
         Mat blackWhite = new Mat();
         cvtColor(source, blackWhite, COLOR_BGR2GRAY);
@@ -96,19 +96,20 @@ public class EdgeDetector {
     }
 
     /**
-     * Extracts the biggest object found in the image.
+     * Extracts the biggest object found in the image, automatically skewing the result.
      *
      * @param source Source to analyze
      * @return A new Mat, consisting only of the found object.
      */
     public Mat extractBiggestObject(Mat source) {
         Mat mat = getCornerMat(source);
-        Mat out = skew(source, mat);
-
-        return out;
+        return skew(source, mat);
     }
 
-    public Mat skewMat(Mat imageMat, Point p1, Point p2, Point p3, Point p4) {
+    /*
+        @todo Remove if not used in the future.
+     */
+    private Mat skewMat(Mat imageMat, Point p1, Point p2, Point p3, Point p4) {
         Mat src = new Mat(4,1,CV_32FC2);
         src.put(0,0, (int)p2.x,(int)p2.y, (int)p3.x,(int)p3.y, (int)p4.x,(int)p4.y);
         Mat dst = new Mat(4,1,CV_32FC2);
@@ -130,24 +131,6 @@ public class EdgeDetector {
         return (int) (-157.763 * Math.log(0.204531 * contrast));
     }
 
-    /*
-        @todo Example usage, remove when documented.
-        Scalar color = new Scalar(202, 0, 42);
-
-        // Debug: draw polygon
-        List<MatOfPoint> contours = new ArrayList<>();
-        contours.add(edgeDetector.findBoundingPolygon(img));
-        Imgproc.drawContours(img, contours, 0, color, 2, 8, new Mat(), 0, new Point());
-        Imgcodecs.imwrite("C:\\Users\\daniel-windevbox\\Desktop\\fozo-polygon.png", img);
-
-        // Debug: draw rect
-        img = new Mat(image.getHeight(),image.getWidth(), CvType.CV_8UC3); // CV_32SC1
-        img.put(0, 0, data);
-        Rect r = edgeDetector.findBoundingRect(img);
-        rectangle(img, r.br(), r.tl(), color, 2);
-        Imgcodecs.imwrite("C:\\Users\\daniel-windevbox\\Desktop\\fozo-rect.png", img);
-     */
-
     /**
      * Skews the source image according to where we have our corners.
      *
@@ -155,7 +138,7 @@ public class EdgeDetector {
      * @param start The mat that contains the corners from the source.
      * @return A skewed mat according to where the corner points were.
      */
-    public Mat skew(Mat imgSrc, Mat start) {
+    private Mat skew(Mat imgSrc, Mat start) {
         //Set the mat to a standard size to make sure all images get the same size.
         Mat out = new Mat(MAT_WIDTH, MAT_HEIGHT, CvType.CV_8UC1);
 
