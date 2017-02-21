@@ -34,7 +34,7 @@ public class TwoTone {
 		int v2 = 200;
 		Core.inRange(image, new Scalar(v0,v1,v2), new Scalar (255,255,255), image);
 		BufferedImage processedImage = Utils.matToImage(image);
-		Utils.saveImage(processedImage, imageName.substring(0, imageName.indexOf('.')),
+		Utils.saveImage(processedImage, "TwoTone", imageName.substring(0, imageName.indexOf('.')),
 				v0 + "_" + v1 + "_" + v2);
 
 		//Resize and show processed image

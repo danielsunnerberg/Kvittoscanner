@@ -76,11 +76,11 @@ public class Utils {
 	}
 
 	// Save an image to disk
-	public static void saveImage (BufferedImage image, String dirName, String name) {
-		String path = "/Users/gustavbergstrom/Documents/Kandidat/Output/" + dirName;
+	public static void saveImage (BufferedImage image, String methodName, String dirName, String name) {
+		String path = "/Users/gustavbergstrom/Documents/Kandidat/Output/" + methodName + "/" + dirName;
 		File dir = new File(path);
 		if (!dir.exists()) {
-			dir.mkdir();
+			dir.mkdirs();
 		}
 
 		try {
