@@ -91,4 +91,10 @@ public class Utils {
 			e.printStackTrace();
 		}
 	}
+
+	// Save a mat to disk by converting it to an image
+	public static void saveMat (Mat mat, String methodName, String dirName, String name) {
+		BufferedImage image = matToImage(mat);
+		saveImage(image, methodName, dirName, name);
+	}
 }
