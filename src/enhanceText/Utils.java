@@ -54,6 +54,12 @@ public class Utils {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
+	// Display a Mat on the screen
+	public static void displayMat (Mat mat, String name) {
+		Image image = matToImage(mat);
+		displayImage(image, name);
+	}
+
 	// Convert a Mat to a BufferedImage
 	public static BufferedImage matToImage(Mat mat){
 		int type = BufferedImage.TYPE_BYTE_GRAY;

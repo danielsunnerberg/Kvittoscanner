@@ -2,12 +2,7 @@ package enhanceText;
 
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Created by gustavbergstrom on 2017-02-01.
@@ -25,7 +20,7 @@ public class TwoTone {
 		String file = imagePath + imageName;
 		Mat image = Imgcodecs.imread(file);
 		Mat resizedImage = Utils.resize(image, 600, 600);
-		Utils.displayImage(Utils.matToImage(resizedImage), "Original");
+		Utils.displayMat(resizedImage, "Original");
 
 //		Mat hsvImage = new Mat();
 //		Imgproc.cvtColor(image, hsvImage, Imgproc.COLOR_BGR2HSV);
@@ -44,7 +39,6 @@ public class TwoTone {
 
 		//Resize and show processed image
 		Mat resizedProcessedMat = Utils.resize(image, 600, 600);
-		BufferedImage resizedProcessedImage = Utils.matToImage(resizedProcessedMat);
-		Utils.displayImage(resizedProcessedImage, "In range original");
+		Utils.displayMat(resizedProcessedMat, "In range original");
 	}
 }
