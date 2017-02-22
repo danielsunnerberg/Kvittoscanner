@@ -4,9 +4,8 @@ import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.opencv.core.CvType.CV_32FC2;
 import static org.opencv.imgproc.Imgproc.*;
@@ -23,7 +22,7 @@ public class EdgeDetector {
      * @param source Source to analyze
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    MatOfPoint2f findBoundingPolygon(Mat source) {
+    public MatOfPoint2f findBoundingPolygon(Mat source) {
         // Convert to black and white
         Mat blackWhite = new Mat();
         cvtColor(source, blackWhite, COLOR_BGR2GRAY);
@@ -82,15 +81,53 @@ public class EdgeDetector {
     private Mat getCornerMat(Mat source) {
         MatOfPoint2f approxCurve = findBoundingPolygon(source);
 
-        //Create a mat with perspective to the 4 corners we get from previous approximation
-        double[] points;
-        List<Point> corners = new ArrayList<>();
-
+        List<Point> points = new ArrayList<>();
         for(int i = 0; i < NUM_CORNERS; i++) {
-            points = approxCurve.get(i,0);
-            Point p = new Point(points[0], points[1]);
-            corners.add(p);
+            double[] coordinates = approxCurve.get(i,0);
+            Point p = new Point(coordinates[0], coordinates[1]);
+            points.add(p);
         }
+
+        return createOrderedCornerMat(points);
+    }
+
+    private Mat createOrderedCornerMat(List<Point> points) {
+        Point topLeft, topRight, bottomLeft, bottomRight;
+
+        // Sort by y-axis ascending, the two points with lowest y are our
+        // top left/right points.
+        points.sort(Comparator.comparingDouble(p -> p.y));
+        Point p1 = points.get(0);
+        Point p2 = points.get(1);
+        if (p1.x > p2.x) {
+            topLeft = p2;
+            topRight = p1;
+        } else {
+            topLeft = p1;
+            topRight = p2;
+        }
+
+        // Sort by y-axis descending
+        points = points.stream()
+                .sorted(Comparator.comparingDouble(p -> ((Point) p).y).reversed())
+                .collect(Collectors.toList());
+        Point p3 = points.get(0);
+        Point p4 = points.get(1);
+        if (p3.x > p4.x) {
+            bottomLeft = p4;
+            bottomRight = p3;
+        } else {
+            bottomLeft = p3;
+            bottomRight = p4;
+        }
+
+        // Create a mat with perspective to the 4 corners we get from previous approximation
+        // Corners are expected to go counter-clockwise from the top right corner.
+        List<Point> corners = new ArrayList<>();
+        corners.add(topRight);
+        corners.add(topLeft);
+        corners.add(bottomLeft);
+        corners.add(bottomRight);
 
         return Converters.vector_Point2f_to_Mat(corners);
     }
@@ -118,8 +155,7 @@ public class EdgeDetector {
         Mat perspectiveTransform = Imgproc.getPerspectiveTransform(src, dst);
         Mat rotated_image = imageMat.clone();
         Imgproc.warpPerspective(imageMat, rotated_image, perspectiveTransform, new Size(imageMat.width(),imageMat.height()));
-        Mat cropped_image = rotated_image.submat((int)p1.y, imageMat.height(), (int)p1.x, imageMat.width());
-        return cropped_image;
+        return rotated_image.submat((int)p1.y, imageMat.height(), (int)p1.x, imageMat.width());
     }
 
     private int findThresholdValue(Mat source) {
