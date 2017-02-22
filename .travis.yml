@@ -11,7 +11,10 @@ before_install:
 install:
   - sudo apt-get install -y build-essential
   - sudo apt-get install -y cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+  - sudo apt-get install -y ffmpeg libavutil-dev libavcodec-dev libavfilter-dev libavformat-dev libavdevice-dev
   - sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
+  - sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
+  - sudo apt-get install -y ninja-build
 
 before_script:
   - git clone https://github.com/opencv/opencv
@@ -19,9 +22,6 @@ before_script:
   - git checkout 3.2.0
   - mkdir build
   - cd build
-  - cmake ..
-  - make -j8
-  - sudo make -j8 install
-  - mkdir -p native/linux/x86_64
-  - mvn install:install-file -Dfile=/usr/local/share/OpenCV/java/opencv-320.jar -DgroupId=opencv -DartifactId=opencv -Dversion=3.2.0 -Dpackaging=jar
+  - cmake -GNinja ..
+  - ninja
   - cd ../..
