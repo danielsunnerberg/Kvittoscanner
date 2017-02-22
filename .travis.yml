@@ -24,4 +24,7 @@ before_script:
   - cd build
   - cmake -GNinja ..
   - ninja
+  - ls -l /usr/local/share/OpenCV/java/libopencv_java320.so
+  - ln -s /usr/local/share/OpenCV/java/libopencv_java320.so /usr/java/packages/lib/amd64/libopencv_java320.so
+  - ln -s /usr/local/share/OpenCV/java/libopencv_java320.so /usr/java/packages/lib/amd64/opencv_java320.so
   - cd ../..
