@@ -16,6 +16,7 @@ public class EdgeDetectorTest {
 
     @Before
     public void setUp() throws Exception {
+        System.out.println(System.getProperty("java.library.path"));
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         edgeDetector = new EdgeDetector();
     }
