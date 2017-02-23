@@ -14,7 +14,7 @@ install:
   - sudo apt-get install -y ffmpeg libavutil-dev libavcodec-dev libavfilter-dev libavformat-dev libavdevice-dev
   - sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
   - sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
-  - sudo apt-get install -y ninja-build
+  - sudo apt-get install -y libopencv-dev
 
 before_script:
   - git clone https://github.com/opencv/opencv
