@@ -2,7 +2,6 @@ package enhanceText;
 
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
-import java.awt.image.BufferedImage;
 
 /**
  * Created by gustavbergstrom on 2017-02-01.
@@ -21,12 +20,6 @@ public class TwoTone {
 		Mat image = Imgcodecs.imread(file);
 		Mat resizedImage = Utils.resize(image, 600, 600);
 		Utils.displayMat(resizedImage, "Original");
-
-//		Mat hsvImage = new Mat();
-//		Imgproc.cvtColor(image, hsvImage, Imgproc.COLOR_BGR2HSV);
-//		displayImage(matToImage(hsvImage), "HSV");
-//		Core.inRange(hsvImage, new Scalar(0,0,100), new Scalar (255,255,255), hsvImage);
-//		displayImage(matToImage(hsvImage), "In range HSV");
 
 		// Make two tone image and save to disk
 		int v0 = 200;
