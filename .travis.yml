@@ -26,8 +26,8 @@ before_script:
   - make -j4
   - sudo make -j4 install
   - ls -l /usr/local/share/OpenCV/java/libopencv_java320.so
-  - ls -l /usr/java/packages/lib/amd64/
   - sudo mkdir -p /usr/java/packages/lib/amd64
+  - ls -l /usr/java/packages/lib/amd64/
   - sudo cp /usr/local/share/OpenCV/java/libopencv_java320.so /usr/java/packages/lib/amd64/libopencv_java320.so
   - sudo cp /usr/local/share/OpenCV/java/libopencv_java320.so /usr/java/packages/lib/amd64/opencv_java320.so
   - cd ../..
