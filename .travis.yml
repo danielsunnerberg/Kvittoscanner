@@ -22,8 +22,9 @@ before_script:
   - git checkout 3.2.0
   - mkdir build
   - cd build
-  - cmake -GNinja ..
-  - ninja
+  - cmake ..
+  - make -j4
+  - sudo make -j4 install
   - ls -l /usr/local/share/OpenCV/java/libopencv_java320.so
   - ln -s /usr/local/share/OpenCV/java/libopencv_java320.so /usr/java/packages/lib/amd64/libopencv_java320.so
   - ln -s /usr/local/share/OpenCV/java/libopencv_java320.so /usr/java/packages/lib/amd64/opencv_java320.so
