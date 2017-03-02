@@ -18,20 +18,15 @@ public class TextEnhancer {
 	 * @param kernelHeight
 	 * @param sigma
 	 * @param thresholdType
-	 * @param gray
 	 * @return
 	 */
 	public static Mat enhanceWithGaussianBlur (
 			Mat imageMat, int thresh, int maxval, int kernelWidth, int kernelHeight, int sigma,
-			ThresholdType thresholdType, boolean gray) {
+			ThresholdType thresholdType) {
 
 		Mat newMat = new Mat();
 
-		if (gray || thresholdType == ThresholdType.OTSU) {
-			Imgproc.cvtColor(imageMat, newMat, Imgproc.COLOR_BGR2GRAY);
-		} else {
-			newMat = imageMat;
-		}
+		Imgproc.cvtColor(imageMat, newMat, Imgproc.COLOR_BGR2GRAY);
 
 		Imgproc.GaussianBlur(newMat, newMat, new Size(kernelWidth, kernelHeight), sigma);
 
@@ -49,19 +44,14 @@ public class TextEnhancer {
 	 * @param maxval
 	 * @param ksize
 	 * @param thresholdType
-	 * @param gray
 	 * @return
 	 */
 	public static Mat enhanceWithMedianBlur (
-			Mat imageMat, int thresh, int maxval, int ksize, ThresholdType thresholdType, boolean gray) {
+			Mat imageMat, int thresh, int maxval, int ksize, ThresholdType thresholdType) {
 
 		Mat newMat = new Mat();
 
-		if (gray || thresholdType == ThresholdType.OTSU) {
-			Imgproc.cvtColor(imageMat, newMat, Imgproc.COLOR_BGR2GRAY);
-		} else {
-			newMat = imageMat;
-		}
+		Imgproc.cvtColor(imageMat, newMat, Imgproc.COLOR_BGR2GRAY);
 
 		Imgproc.medianBlur(newMat, newMat, ksize);
 
