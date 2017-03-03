@@ -40,6 +40,6 @@ public class ReceiptExtractor {
         }
 
         // Merge receipts into super-image
-        return BlurDetector.createImage(receipts, NUM_IMAGE_PIECES);
+        return BlurDetector.createImageRows(receipts, NUM_IMAGE_PIECES);
     }
 }

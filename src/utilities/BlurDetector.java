@@ -89,6 +89,33 @@ public class BlurDetector {
     }
 
     /**
+     * Split a image into smaller subsection and add each subsection to a map.
+     *
+     * @param imageMat the mat from the image
+     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
+     * @return a map containing utilities.MatPos and variance value for each subsection.
+     */
+    public static List<MatPos> getVarianceListRows(Mat imageMat, int divide) {
+
+        List<MatPos> list = new LinkedList<>();
+
+        int rows = imageMat.rows();
+
+        for(int i = 0; i < divide; i++) {
+            //Split the mat in a row
+            Mat rowMat = imageMat.rowRange(i * rows / divide, (i + 1) * rows / divide);
+
+            double var = getVariance(rowMat);
+
+                //Add the new smaller mat with the position and its variance to the list
+            list.add(new MatPos(rowMat, i, var));
+
+        }
+
+        return list;
+    }
+
+    /**
      * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
      * the best parts.
      *
@@ -134,6 +161,51 @@ public class BlurDetector {
     }
 
     /**
+     * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
+     * the best parts.
+     *
+     * @param frames the list containing the mats.
+     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
+     * @return a Mat with all the best parts for all different frames
+     */
+    public static Mat createImageRows(List<Mat> frames, int divide) {
+
+        //A list that will contain all the other frames with their splitted parts.
+        List<List<MatPos>> varianceLists = new LinkedList<>();
+
+        for(Mat mat : frames) {
+            varianceLists.add(getVarianceListRows(mat, divide));
+        }
+
+        MatPos[] list = new MatPos[divide];
+
+        for(List<MatPos> l : varianceLists) {
+
+            for (MatPos matPos : l) {
+
+                //System.out.println(matPos.getVar());
+
+                double variance = matPos.getVar();
+
+                //Is the position empty?
+                if(list[matPos.getY()] == null) {
+                    list[matPos.getY()] = matPos;
+                }
+
+                //Is the position containing a submat with a lower variance than the current submat?
+                else if(list[matPos.getY()].getVar() < variance) {
+
+                    list[matPos.getY()] = matPos;
+                }
+            }
+        }
+
+        Mat outMat = mergeMats(list, divide);
+
+        return outMat;
+    }
+
+    /**
      * Merge the subsections of the original image back to a big image again.
      *
      * @param mats the list containing the mats with the highest variance.
@@ -165,6 +237,37 @@ public class BlurDetector {
 
         //Merge all the columns from the rows tigheter
         Core.hconcat(colList, res);
+
+        return res;
+    }
+
+    /**
+     * Merge the subsections of the original image back to a big image again.
+     *
+     * @param mats the list containing the mats with the highest variance.
+     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
+     * @return a map containing utilities.MatPos and variance value for each subsection.
+     */
+    private static Mat mergeMats(MatPos[] mats, int divide) {
+
+        //A list that will contain all the columns
+        Mat res = new Mat();
+        List<Mat> rowList = new LinkedList<>();
+
+        for(int i = 0; i < divide; i++) {
+
+            Mat row = new Mat();
+            //A list that will contain all the rows
+
+
+            Mat m = mats[i].getMat();
+            rowList.add(m);
+
+            //Merge this row together
+
+        }
+
+        Core.vconcat(rowList, res);
 
         return res;
     }
@@ -224,6 +327,14 @@ public class BlurDetector {
             this.y = y;
             this.var = var;
         }
+
+        public MatPos(Mat mat, int y, double var) {
+            this.mat = mat;
+            this.x = -1;
+            this.y = y;
+            this.var = var;
+        }
+
 
         public MatPos(Mat mat, double var) {
             this.mat = mat;
