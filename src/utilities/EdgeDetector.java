@@ -87,15 +87,19 @@ public class EdgeDetector {
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
     public MatOfPoint findBoundingPolygon3(Mat _source, boolean detectGlare) {
+        return findBoundingPolygon3(_source, detectGlare, false);
+    }
+
+    private MatOfPoint findBoundingPolygon3(Mat _source, boolean detectGlare, boolean recursiveCall) {
         // If we're detecting glares, we may paint on the specified source
         // which actually is a clone.
         Mat source = detectGlare ? _source.clone() : _source;
 
-        if (detectGlare) {
+        if (detectGlare && ! recursiveCall) {
             // @todo Do not use this flag blindly, do some own detection?
             // Detect glare recursively by using stricter thresholds. This call
             // won't result in another recursion level.
-            final MatOfPoint glarePolygon = findBoundingPolygon3(source, false);
+            final MatOfPoint glarePolygon = findBoundingPolygon3(source, false, true);
 
             // By drawing the glare's bounding box on the image clone, the following
             // steps require less strict thresholds.
@@ -150,9 +154,8 @@ public class EdgeDetector {
         // Apply threshold
         Mat threshOut = new Mat();
         int thresh = findThresholdValue(source);
-        if (! detectGlare) {
+        if (! detectGlare && recursiveCall) {
             // We're detecting glares; which requires a far stricter threshold.
-            // @todo This is wrong; it should be !detectGlare && recursionLevel > 0
             thresh *= 2;
         }
 
@@ -192,6 +195,9 @@ public class EdgeDetector {
 
         return maxContour;
     }
+
+
+
 
     /**
      * Finds a polygon surrounding the biggest object in the image.
