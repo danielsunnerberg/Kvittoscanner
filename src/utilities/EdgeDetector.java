@@ -5,20 +5,13 @@ import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.photo.Photo;
 import org.opencv.utils.Converters;
-import org.opencv.video.BackgroundSubtractorMOG2;
-import org.opencv.video.Video;
 
-import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.FlatteningPathIterator;
-import java.awt.geom.PathIterator;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.opencv.core.CvType.CV_8U;
 import static org.opencv.imgproc.Imgproc.*;
-import static org.opencv.photo.Photo.INPAINT_TELEA;
 import static org.opencv.photo.Photo.inpaint;
 
 public class EdgeDetector {
@@ -33,14 +26,14 @@ public class EdgeDetector {
      * @param source Source to analyze
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    public MatOfPoint2f findBoundingPolygon(Mat source, boolean first) {
+    public MatOfPoint2f findBoundingPolygon(Mat source) {
         // Convert to black and white
         Mat blackWhite = new Mat();
         cvtColor(source, blackWhite, COLOR_BGR2GRAY);
 
         // Apply threshold
         Mat threshOut = new Mat();
-        final int thresh = first ? findThresholdValue(source) : 220;
+        final int thresh = findThresholdValue(source);
 
         threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
 
@@ -86,12 +79,22 @@ public class EdgeDetector {
 
     // @todo Mask if we have all frames?
 
-    public MatOfPoint findBoundingPolygon3(Mat _source, boolean first) {
+    /**
+     * Finds a polygon surrounding the biggest object in the image.
+     *
+     * @param _source Source to analyze
+     * @param detectGlare Whether anti-glare actions should be applied. May be time consuming.
+     * @return Points forming a polygon which encloses the biggest object in the image.
+     */
+    public MatOfPoint findBoundingPolygon3(Mat _source, boolean detectGlare) {
         // If we're detecting glares, we may paint on the specified source
         // which actually is a clone.
-        Mat source = first ? _source.clone() : _source;
+        Mat source = detectGlare ? _source.clone() : _source;
 
-        if (first) {
+        if (detectGlare) {
+            // @todo Do not use this flag blindly, do some own detection?
+            // Detect glare recursively by using stricter thresholds. This call
+            // won't result in another recursion level.
             final MatOfPoint glarePolygon = findBoundingPolygon3(source, false);
 
             // By drawing the glare's bounding box on the image clone, the following
@@ -100,7 +103,7 @@ public class EdgeDetector {
             final Scalar boundingRectColor = new Scalar(255, 255, 255);
             Imgproc.rectangle(source, glareBoundingBox.br(), glareBoundingBox.tl(), boundingRectColor);
 
-            // @todo Do tbis based on where the glare is located?
+            // @todo Do this based on where the glare is located?
             // Left heavy => re-align
             int xMin = (int) (glareBoundingBox.tl().x + 0);
             if (xMin < 0) {
@@ -122,6 +125,7 @@ public class EdgeDetector {
                 yMax = source.height();
             }
 
+            // Create a mask which masks out only the parts in the glare bounding box.
             Mat mask = new Mat(source.rows(), source.cols(), CV_8U);
             for (int x = xMin; x < xMax; x++) {
                 for (int y = yMin; y < yMax; y++) {
@@ -129,8 +133,11 @@ public class EdgeDetector {
                 }
             }
 
+            // "Stretch" the content in the bounding box in a content-aware way.
+            // Think of it as a content aware/smart removal.
             inpaint(source, mask, source, 5, Photo.INPAINT_TELEA);
 
+            // @todo Remove
 //            List<MatOfPoint> contours = new ArrayList<>();
 //            contours.add(glarePolygon);
 //            Imgproc.drawContours(source, contours, 0, new Scalar(255, 0, 0), 2, 8, new Mat(), 0, new Point());
@@ -143,13 +150,13 @@ public class EdgeDetector {
         // Apply threshold
         Mat threshOut = new Mat();
         int thresh = findThresholdValue(source);
-        if (! first) {
+        if (! detectGlare) {
             // We're detecting glares; which requires a far stricter threshold.
+            // @todo This is wrong; it should be !detectGlare && recursionLevel > 0
             thresh *= 2;
         }
 
         threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
-
         List<MatOfPoint> contours = new ArrayList<>();
         Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
@@ -176,14 +183,14 @@ public class EdgeDetector {
             );
         }
 
-        if (first) {
+        if (detectGlare) {
+            // Simplify the found contour
             MatOfPoint2f contour2f = new MatOfPoint2f(maxContour.toArray());
             approxPolyDP(contour2f, contour2f, 150, true);
-
             return new MatOfPoint(contour2f.toArray());
-        } else {
-            return maxContour;
         }
+
+        return maxContour;
     }
 
     /**
@@ -193,7 +200,7 @@ public class EdgeDetector {
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
     private Mat getCornerMat(Mat source) {
-        MatOfPoint2f approxCurve = findBoundingPolygon(source, true);
+        MatOfPoint2f approxCurve = findBoundingPolygon(source);
 
         List<Point> points = new ArrayList<>();
         for(int i = 0; i < NUM_CORNERS; i++) {
