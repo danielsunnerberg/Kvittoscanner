@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opencv.core.*;
 import org.opencv.core.Point;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.photo.Photo;
 import org.opencv.utils.Converters;
@@ -23,6 +24,7 @@ public class EdgeDetector {
     private final int MAT_WIDTH = 500;
     private final int MAT_HEIGHT = 1000;
     private final int NUM_CORNERS = 4;
+    private final static int CORNER_ANGLE_SLACK = 15;
 
     private final ContrastDetector contrastDetector;
 
@@ -31,6 +33,65 @@ public class EdgeDetector {
     }
 
     // @todo Mask if we have all frames?
+
+    private MatOfPoint2f reducePolygon(MatOfPoint2f polygon) {
+        double epsilonFactor = 0.50;
+        for (int reduceCounter = 0; reduceCounter < 30; reduceCounter++) {
+            // Simplify the found polygon to contain only the 4 corners.
+            // This is a bit tricky, as we cannot directly specify how many points we WANT;
+            // so we have to try with a few epsilon-values.
+            MatOfPoint2f approximation = new MatOfPoint2f();
+            Imgproc.approxPolyDP(polygon, approximation, polygon.total() * epsilonFactor, true);
+
+            long points = approximation.total();
+            if (points == NUM_CORNERS) {
+                logger.info("Reduced bounding polygon to 4 points in {} attempts", reduceCounter + 1);
+                return approximation;
+            } else if (points > NUM_CORNERS) {
+                epsilonFactor += 0.05;
+            } else {
+                epsilonFactor -= 0.05;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean validateCornerAngles(MatOfPoint2f boundingPolygon) {
+        Point[] points = boundingPolygon.toArray();
+        int[][] triangles = {
+            new int[]{ 0, 3, 1 }, // top left
+            new int[]{ 1, 0, 2 }, // bottom left
+            new int[]{ 2, 1, 3 }, // bottom right
+            new int[]{ 3, 0, 2 }, // top right
+        };
+
+        for (int[] corners : triangles) {
+            Point p1 = points[corners[0]];
+            Point p2 = points[corners[1]];
+            Point p3 = points[corners[2]];
+            double angle = angle(p1, p2, p3);
+            if (Math.abs(angle - 90) > CORNER_ANGLE_SLACK) {
+                logger.info("Illegal corner detected: {} - {}", Arrays.toString(corners), angle);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private double angle(Point p1, Point p2, Point p3) {
+        double p12 = length(p1, p2);
+        double p13 = length(p1, p3);
+        double p23 = length(p2, p3);
+        // Using the law of cosines
+        double angle = Math.acos((Math.pow(p12, 2) + Math.pow(p13, 2) - Math.pow(p23, 2)) / (2 * p12 * p13));
+        return Math.toDegrees(angle);
+    }
+
+    private double length(Point p1, Point p2) {
+        return Math.sqrt(Math.pow((p1.x - p2.x), 2) + Math.pow((p1.y - p2.y), 2));
+    }
 
     /**
      * Finds a polygon surrounding the biggest object in the image.
@@ -44,30 +105,33 @@ public class EdgeDetector {
             findBoundingPolygon(source, detectGlare, false).toArray()
         );
 
-        double epsilonFactor = 0.50;
-        for (int reduceCounter = 0; reduceCounter < 30; reduceCounter++) {
-            // Simplify the found polygon to contain only the 4 corners.
-            // This is a bit tricky, as we cannot directly specify how many points we WANT;
-            // so we have to try with a few epsilon-values.
-            MatOfPoint2f approximation = new MatOfPoint2f();
-            Imgproc.approxPolyDP(boundingPolygon, approximation, boundingPolygon.total() * epsilonFactor, true);
-
-            long points = approximation.total();
-            if (points == NUM_CORNERS) {
-                logger.info("Reduced bounding polygon to 4 points in {} attempts", reduceCounter + 1);
-                return approximation;
-            } else if (points > NUM_CORNERS) {
-                epsilonFactor += 0.05;
-            } else {
-                epsilonFactor -= 0.05;
-            }
+        MatOfPoint2f approximation = reducePolygon(boundingPolygon);
+        if (approximation == null) {
+            logger.warn("Failed to reduce bounding polygon to 4 points");
+            return null;
         }
 
-        logger.warn("Failed to reduce bounding polygon to 4 points");
-        return null;
+        // A perfect corner has an angle of 90*.
+        // Allow each corner some slack, discard the frame if it's too bad.
+        if (! validateCornerAngles(approximation)) {
+            logger.warn("Extracted bounding box has invalid corner angles, discarding");
+            return null;
+        }
+
+        MatOfPoint fc2 = new MatOfPoint(approximation.toArray());
+        List<MatOfPoint> fc2l = new ArrayList<>();
+        fc2l.add(fc2);
+
+        Scalar color = new Scalar(255, 0, 0);
+        Imgproc.drawContours(source, fc2l, 0, color, 2, 8, new Mat(), 0, new Point());
+
+        String filename = "C:\\Users\\daniel-windevbox\\Desktop\\frames\\glare\\out_bb_" + source.dataAddr() + ".png";
+        Imgcodecs.imwrite(filename, source);
+
+        return approximation;
     }
 
-    public MatOfPoint findBoundingPolygon(Mat _source, boolean detectGlare, boolean recursiveCall) {
+    MatOfPoint findBoundingPolygon(Mat _source, boolean detectGlare, boolean recursiveCall) {
         // If we're detecting glares, we may paint on the specified source
         // which actually is a clone.
         Mat source = recursiveCall ? _source : _source.clone();
