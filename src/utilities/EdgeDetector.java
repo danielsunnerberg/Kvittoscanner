@@ -20,61 +20,10 @@ public class EdgeDetector {
     private final int MAT_HEIGHT = 1000;
     private final int NUM_CORNERS = 4;
 
-    /**
-     * Finds a polygon surrounding the biggest object in the image.
-     *
-     * @param source Source to analyze
-     * @return Points forming a polygon which encloses the biggest object in the image.
-     */
-    public MatOfPoint2f findBoundingPolygon(Mat source) {
-        // Convert to black and white
-        Mat blackWhite = new Mat();
-        cvtColor(source, blackWhite, COLOR_BGR2GRAY);
+    private final ContrastDetector contrastDetector;
 
-        // Apply threshold
-        Mat threshOut = new Mat();
-        final int thresh = findThresholdValue(source);
-
-        threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
-
-        List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        MatOfPoint2f approxCurve = new MatOfPoint2f();
-
-        // Find contour with biggest area
-        MatOfPoint maxContour = null;
-        double maxArea = 0;
-
-        for (MatOfPoint contour : contours) {
-            double area = Imgproc.contourArea(contour);
-
-            if (area > maxArea) {
-                MatOfPoint2f tmpMat = new MatOfPoint2f(contour.toArray() );
-                MatOfPoint2f aCurve = new MatOfPoint2f();
-                Imgproc.approxPolyDP(tmpMat, aCurve, contour.total() * 0.05, true);
-
-                //See if we got 4 corners in the approximation
-                if (aCurve.total() == NUM_CORNERS) {
-                    maxArea = area;
-                    maxContour = contour;
-                    approxCurve = aCurve;
-                }
-            }
-        }
-
-        if (maxContour == null) {
-            // No contour found (one colored image?). Hence, the original image is already bounded.
-            Size size = source.size();
-            return new MatOfPoint2f(
-                    new Point(0, 0),
-                    new Point(size.width, 0),
-                    new Point(size.width, size.height),
-                    new Point(0, size.height)
-            );
-        }
-
-        return approxCurve;
+    public EdgeDetector() {
+        contrastDetector = new ContrastDetector();
     }
 
     // @todo Mask if we have all frames?
@@ -82,15 +31,28 @@ public class EdgeDetector {
     /**
      * Finds a polygon surrounding the biggest object in the image.
      *
-     * @param _source Source to analyze
-     * @param detectGlare Whether anti-glare actions should be applied. May be time consuming.
+     * @param source Source to analyze
+     * @param detectGlare Whether anti-glare methods should be automatically applied
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    public MatOfPoint findBoundingPolygon3(Mat _source, boolean detectGlare) {
-        return findBoundingPolygon3(_source, detectGlare, false);
+    public MatOfPoint2f findBoundingBox(Mat source, boolean detectGlare) {
+        MatOfPoint2f boundingPolygon = new MatOfPoint2f(
+            findBoundingPolygon(source, detectGlare, false).toArray()
+        );
+
+        // Simplify the found polygon to contain only the 4 corners
+        MatOfPoint2f approximation = new MatOfPoint2f();
+        Imgproc.approxPolyDP(boundingPolygon, approximation, boundingPolygon.total() * 0.05, true);
+
+        // See if we got 4 corners in the approximation, otherwise discard result
+        if (approximation.total() == NUM_CORNERS) {
+            return approximation;
+        }
+
+        return null;
     }
 
-    private MatOfPoint findBoundingPolygon3(Mat _source, boolean detectGlare, boolean recursiveCall) {
+    private MatOfPoint findBoundingPolygon(Mat _source, boolean detectGlare, boolean recursiveCall) {
         // If we're detecting glares, we may paint on the specified source
         // which actually is a clone.
         Mat source = detectGlare ? _source.clone() : _source;
@@ -99,7 +61,7 @@ public class EdgeDetector {
             // @todo Do not use this flag blindly, do some own detection?
             // Detect glare recursively by using stricter thresholds. This call
             // won't result in another recursion level.
-            final MatOfPoint glarePolygon = findBoundingPolygon3(source, false, true);
+            final MatOfPoint glarePolygon = findBoundingPolygon(source, false, true);
 
             // By drawing the glare's bounding box on the image clone, the following
             // steps require less strict thresholds.
@@ -187,7 +149,8 @@ public class EdgeDetector {
         }
 
         if (detectGlare) {
-            // Simplify the found contour
+            // Simplify the found contour, which eventually removes
+            // extreme points caused by glare.
             MatOfPoint2f contour2f = new MatOfPoint2f(maxContour.toArray());
             approxPolyDP(contour2f, contour2f, 150, true);
             return new MatOfPoint(contour2f.toArray());
@@ -196,17 +159,15 @@ public class EdgeDetector {
         return maxContour;
     }
 
-
-
-
     /**
      * Finds a polygon surrounding the biggest object in the image.
      *
      * @param source Source to analyze
+     * @param detectGlare Whether anti-glare methods should be automatically applied
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    private Mat getCornerMat(Mat source) {
-        MatOfPoint2f approxCurve = findBoundingPolygon(source);
+    private Mat getCornerMat(Mat source, boolean detectGlare) {
+        MatOfPoint2f approxCurve = findBoundingBox(source, detectGlare);
 
         List<Point> points = new ArrayList<>();
         for(int i = 0; i < NUM_CORNERS; i++) {
@@ -263,15 +224,16 @@ public class EdgeDetector {
      * Extracts the biggest object found in the image, automatically skewing the result.
      *
      * @param source Source to analyze
+     * @param detectGlare Whether anti-glare methods should be automatically applied. May be time consuming.
      * @return A new Mat, consisting only of the found object.
      */
-    public Mat extractBiggestObject(Mat source) {
-        Mat mat = getCornerMat(source);
+    public Mat extractBiggestObject(Mat source, boolean detectGlare) {
+        Mat mat = getCornerMat(source, detectGlare);
         return skew(source, mat);
     }
 
     private int findThresholdValue(Mat source) {
-        final double contrast = new ContrastDetector().calculateContrast(source);
+        final double contrast = contrastDetector.calculateContrast(source);
         // We want to convert the contrast value to a threshold value, [0, 255].
         // Some testing of images with various contrast and which threshold they needed
         // gave the following points: fit {1.1, 240}, {2.5, 100}, {5, 0}, where (x = contrast, y = threshold).

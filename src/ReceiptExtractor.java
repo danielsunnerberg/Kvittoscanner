@@ -16,19 +16,28 @@ public class ReceiptExtractor {
 
     private EdgeDetector edgeDetector = new EdgeDetector();
 
-    public Mat extractReceipt(VideoCapture source) {
+    /**
+     * Extracts a receipt from a video stream by finding the best pieces of
+     * the best frames.
+     *
+     * @param source Video stream to extract receipt from
+     * @param detectGlare Whether anti-glare methods should be automatically applied. Should be `true` if flash was used.
+     * @return The extracted receipt
+     */
+    public Mat extractReceipt(VideoCapture source, boolean detectGlare) {
 
         // Split the video to frames and select the best frames.
         List<Mat> frames = VideoSplitter.getFrames(source, NUM_SPLITTED_FRAMES);
         frames = BlurDetector.getBestFrames(frames, frames.size() / 4);
 
-        System.out.println(frames.size());
-
         // Extract the receipt from the frames
         List<Mat> receipts = new ArrayList<>();
-        int x = 0;
         for (Mat frame : frames) {
-            Mat receipt = edgeDetector.extractBiggestObject(frame);
+            Mat receipt = edgeDetector.extractBiggestObject(frame, detectGlare);
+            if (receipt == null) {
+                // Failed to extract receipt
+                continue;
+            }
 
             // Skew each receipt to make them align
             // @todo Skew + make sure all images have exactly same size.
