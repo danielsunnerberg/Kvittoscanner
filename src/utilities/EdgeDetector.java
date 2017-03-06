@@ -1,5 +1,7 @@
 package utilities;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opencv.core.*;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
@@ -15,6 +17,8 @@ import static org.opencv.imgproc.Imgproc.*;
 import static org.opencv.photo.Photo.inpaint;
 
 public class EdgeDetector {
+
+    private static final Logger logger = LogManager.getLogger(EdgeDetector.class);
 
     private final int MAT_WIDTH = 500;
     private final int MAT_HEIGHT = 1000;
@@ -40,22 +44,33 @@ public class EdgeDetector {
             findBoundingPolygon(source, detectGlare, false).toArray()
         );
 
-        // Simplify the found polygon to contain only the 4 corners
-        MatOfPoint2f approximation = new MatOfPoint2f();
-        Imgproc.approxPolyDP(boundingPolygon, approximation, boundingPolygon.total() * 0.05, true);
+        double epsilonFactor = 0.50;
+        for (int reduceCounter = 0; reduceCounter < 30; reduceCounter++) {
+            // Simplify the found polygon to contain only the 4 corners.
+            // This is a bit tricky, as we cannot directly specify how many points we WANT;
+            // so we have to try with a few epsilon-values.
+            MatOfPoint2f approximation = new MatOfPoint2f();
+            Imgproc.approxPolyDP(boundingPolygon, approximation, boundingPolygon.total() * epsilonFactor, true);
 
-        // See if we got 4 corners in the approximation, otherwise discard result
-        if (approximation.total() == NUM_CORNERS) {
-            return approximation;
+            long points = approximation.total();
+            if (points == NUM_CORNERS) {
+                logger.info("Reduced bounding polygon to 4 points in {} attempts", reduceCounter + 1);
+                return approximation;
+            } else if (points > NUM_CORNERS) {
+                epsilonFactor += 0.05;
+            } else {
+                epsilonFactor -= 0.05;
+            }
         }
 
+        logger.warn("Failed to reduce bounding polygon to 4 points");
         return null;
     }
 
     public MatOfPoint findBoundingPolygon(Mat _source, boolean detectGlare, boolean recursiveCall) {
         // If we're detecting glares, we may paint on the specified source
         // which actually is a clone.
-        Mat source = detectGlare ? _source.clone() : _source;
+        Mat source = recursiveCall ? _source : _source.clone();
 
         if (detectGlare && ! recursiveCall) {
             // @todo Do not use this flag blindly, do some own detection?
@@ -120,6 +135,8 @@ public class EdgeDetector {
             // We're detecting glares; which requires a far stricter threshold.
             thresh *= 2;
         }
+        logger.info("Finding contours with threshold value {}", thresh);
+
 
         threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
         List<MatOfPoint> contours = new ArrayList<>();
