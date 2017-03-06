@@ -10,6 +10,7 @@ import org.opencv.videoio.Videoio;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class VideoSplitterTest {
@@ -41,5 +42,26 @@ public class VideoSplitterTest {
         assertEquals(frameCount, frames.size());
 
         capture.release();
+    }
+
+    @Test
+    public void testFramesNotEqual() {
+        String filePath = VideoSplitterTest.class.getResource("/videos/example-video.mp4").getFile().substring(1);
+        final VideoCapture capture = new VideoCapture(filePath);
+        final int frameCount = (int) capture.get(Videoio.CAP_PROP_FRAME_COUNT);
+
+        assertTrue("Loaded file should have frames", frameCount > 0);
+
+        // When requiredFrames=0 all frames should be extracted
+        List<Mat> frames = VideoSplitter.getFrames(filePath, 0);
+        assertTrue("Should extract frames", frames.size() > 1);
+
+        Mat previousFrame = null;
+        for (Mat frame : frames) {
+            assertNotNull(frame);
+            assertTrue(previousFrame == null || !previousFrame.equals(frame));
+            previousFrame = frame;
+        }
+
     }
 }
