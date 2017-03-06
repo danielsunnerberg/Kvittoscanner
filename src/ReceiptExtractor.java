@@ -1,5 +1,6 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
@@ -7,15 +8,13 @@ import utilities.BlurDetector;
 import utilities.EdgeDetector;
 import utilities.VideoSplitter;
 
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ReceiptExtractor {
 
     // @todo Set these constants based on the video itself?
-    private final static int NUM_SPLITTED_FRAMES = 10;
+    private final static int NUM_SPLITTED_FRAMES = 30;
     private final static int NUM_IMAGE_PIECES = 2;
 
     private static final Logger logger = LogManager.getLogger(ReceiptExtractor.class);
@@ -44,6 +43,8 @@ public class ReceiptExtractor {
         frames = BlurDetector.getBestFrames(frames, frames.size() / 2);
         logger.info("Selected the {} best frames", frames.size());
 
+        rotateFrames(frames);
+
         // Extract the receipt from the frames
         List<Mat> receipts = new ArrayList<>();
         for (Mat frame : frames) {
@@ -61,5 +62,13 @@ public class ReceiptExtractor {
 
         // Merge receipts into super-image
         return BlurDetector.createImageRows(receipts, NUM_IMAGE_PIECES);
+    }
+
+    private void rotateFrames(List<Mat> frames) {
+        for (Mat frame : frames) {
+            if (frame.width() > frame.height()) {
+                Core.flip(frame.t(), frame, Core.ROTATE_90_COUNTERCLOCKWISE);
+            }
+        }
     }
 }

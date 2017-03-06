@@ -1,5 +1,6 @@
 package utilities;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
@@ -33,7 +34,6 @@ public class VideoSplitter {
      * @return extracted frames
      */
     public static List<Mat> getFrames(VideoCapture capture, int requiredFrames) {
-        Mat mat;
         final double frameCount = capture.get(Videoio.CAP_PROP_FRAME_COUNT);
 
         int frameDelay = 0;
@@ -47,7 +47,7 @@ public class VideoSplitter {
                 break;
             }
 
-            mat = new Mat();
+            Mat mat = new Mat();
             capture.retrieve(mat);
 
             if (mat.empty()) {
@@ -57,6 +57,8 @@ public class VideoSplitter {
 
             frames.add(mat);
 
+            // To get an uniform distribution, we must discard frames
+            // before reading the next.
             for (int delay = 0; delay < frameDelay; delay++) {
                 // Read and discard frames
                 capture.read(new Mat());

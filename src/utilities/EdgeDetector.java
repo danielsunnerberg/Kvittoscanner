@@ -138,6 +138,7 @@ public class EdgeDetector {
 
         if (detectGlare && ! recursiveCall) {
             // @todo Do not use this flag blindly, do some own detection?
+            // @todo Improve hit-ratio of the glare-detection. Sketchy at best right now.
             // Detect glare recursively by using stricter thresholds. This call
             // won't result in another recursion level.
             final MatOfPoint glarePolygon = findBoundingPolygon(source, false, true);
