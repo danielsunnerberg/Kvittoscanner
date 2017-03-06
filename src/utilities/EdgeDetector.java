@@ -1,14 +1,25 @@
 package utilities;
 
 import org.opencv.core.*;
+import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.photo.Photo;
 import org.opencv.utils.Converters;
+import org.opencv.video.BackgroundSubtractorMOG2;
+import org.opencv.video.Video;
 
+import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.FlatteningPathIterator;
+import java.awt.geom.PathIterator;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.opencv.core.CvType.CV_32FC2;
+import static org.opencv.core.CvType.CV_8U;
 import static org.opencv.imgproc.Imgproc.*;
+import static org.opencv.photo.Photo.INPAINT_TELEA;
+import static org.opencv.photo.Photo.inpaint;
 
 public class EdgeDetector {
 
@@ -22,14 +33,15 @@ public class EdgeDetector {
      * @param source Source to analyze
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
-    public MatOfPoint2f findBoundingPolygon(Mat source) {
+    public MatOfPoint2f findBoundingPolygon(Mat source, boolean first) {
         // Convert to black and white
         Mat blackWhite = new Mat();
         cvtColor(source, blackWhite, COLOR_BGR2GRAY);
 
         // Apply threshold
         Mat threshOut = new Mat();
-        final int thresh = findThresholdValue(source);
+        final int thresh = first ? findThresholdValue(source) : 220;
+
         threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
 
         List<MatOfPoint> contours = new ArrayList<>();
@@ -72,6 +84,108 @@ public class EdgeDetector {
         return approxCurve;
     }
 
+    // @todo Mask if we have all frames?
+
+    public MatOfPoint findBoundingPolygon3(Mat _source, boolean first) {
+        // If we're detecting glares, we may paint on the specified source
+        // which actually is a clone.
+        Mat source = first ? _source.clone() : _source;
+
+        if (first) {
+            final MatOfPoint glarePolygon = findBoundingPolygon3(source, false);
+
+            // By drawing the glare's bounding box on the image clone, the following
+            // steps require less strict thresholds.
+            final Rect glareBoundingBox = boundingRect(glarePolygon);
+            final Scalar boundingRectColor = new Scalar(255, 255, 255);
+            Imgproc.rectangle(source, glareBoundingBox.br(), glareBoundingBox.tl(), boundingRectColor);
+
+            // @todo Do tbis based on where the glare is located?
+            // Left heavy => re-align
+            int xMin = (int) (glareBoundingBox.tl().x + 0);
+            if (xMin < 0) {
+                xMin = 0;
+            }
+
+            int xMax = (int) (glareBoundingBox.br().x + 100);
+            if (xMax > source.width()) {
+                xMax = source.width();
+            }
+
+            int yMin = (int) (glareBoundingBox.tl().y - 120);
+            if (yMin < 0) {
+                yMin = 0;
+            }
+
+            int yMax = (int) (glareBoundingBox.br().y + 100);
+            if (yMax > source.height()) {
+                yMax = source.height();
+            }
+
+            Mat mask = new Mat(source.rows(), source.cols(), CV_8U);
+            for (int x = xMin; x < xMax; x++) {
+                for (int y = yMin; y < yMax; y++) {
+                    mask.put(y, x, 255, 255, 255);
+                }
+            }
+
+            inpaint(source, mask, source, 5, Photo.INPAINT_TELEA);
+
+//            List<MatOfPoint> contours = new ArrayList<>();
+//            contours.add(glarePolygon);
+//            Imgproc.drawContours(source, contours, 0, new Scalar(255, 0, 0), 2, 8, new Mat(), 0, new Point());
+        }
+
+        // Convert to black and white
+        Mat blackWhite = new Mat();
+        cvtColor(source, blackWhite, COLOR_BGR2GRAY);
+
+        // Apply threshold
+        Mat threshOut = new Mat();
+        int thresh = findThresholdValue(source);
+        if (! first) {
+            // We're detecting glares; which requires a far stricter threshold.
+            thresh *= 2;
+        }
+
+        threshold(blackWhite, threshOut, thresh, 255, THRESH_BINARY);
+
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        // Find contour with biggest area
+        MatOfPoint maxContour = null;
+        double maxArea = 0;
+        for (MatOfPoint contour : contours) {
+            double area = Imgproc.contourArea(contour);
+
+            if (area > maxArea) {
+                maxArea = area;
+                maxContour = contour;
+            }
+        }
+
+        if (maxContour == null) {
+            // No contour found (one colored image?). Hence, the original image is already bounded.
+            Size size = source.size();
+            return new MatOfPoint(
+                    new Point(0, 0),
+                    new Point(size.width, 0),
+                    new Point(size.width, size.height),
+                    new Point(0, size.height)
+            );
+        }
+
+        if (first) {
+            MatOfPoint2f contour2f = new MatOfPoint2f(maxContour.toArray());
+            approxPolyDP(contour2f, contour2f, 150, true);
+
+            return new MatOfPoint(contour2f.toArray());
+        } else {
+            return maxContour;
+        }
+    }
+
     /**
      * Finds a polygon surrounding the biggest object in the image.
      *
@@ -79,7 +193,7 @@ public class EdgeDetector {
      * @return Points forming a polygon which encloses the biggest object in the image.
      */
     private Mat getCornerMat(Mat source) {
-        MatOfPoint2f approxCurve = findBoundingPolygon(source);
+        MatOfPoint2f approxCurve = findBoundingPolygon(source, true);
 
         List<Point> points = new ArrayList<>();
         for(int i = 0; i < NUM_CORNERS; i++) {
@@ -141,21 +255,6 @@ public class EdgeDetector {
     public Mat extractBiggestObject(Mat source) {
         Mat mat = getCornerMat(source);
         return skew(source, mat);
-    }
-
-    /*
-        @todo Remove if not used in the future.
-     */
-    private Mat skewMat(Mat imageMat, Point p1, Point p2, Point p3, Point p4) {
-        Mat src = new Mat(4,1,CV_32FC2);
-        src.put(0,0, (int)p2.x,(int)p2.y, (int)p3.x,(int)p3.y, (int)p4.x,(int)p4.y);
-        Mat dst = new Mat(4,1,CV_32FC2);
-        dst.put(0,0, imageMat.width(),(int)p1.y, 0,imageMat.height(), imageMat.width(),imageMat.height());
-
-        Mat perspectiveTransform = Imgproc.getPerspectiveTransform(src, dst);
-        Mat rotated_image = imageMat.clone();
-        Imgproc.warpPerspective(imageMat, rotated_image, perspectiveTransform, new Size(imageMat.width(),imageMat.height()));
-        return rotated_image.submat((int)p1.y, imageMat.height(), (int)p1.x, imageMat.width());
     }
 
     private int findThresholdValue(Mat source) {

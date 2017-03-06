@@ -29,9 +29,7 @@ public class ReceiptExtractor {
         int x = 0;
         for (Mat frame : frames) {
             Mat receipt = edgeDetector.extractBiggestObject(frame);
-            System.out.println(receipt.size());
 
-        //    Imgcodecs.imwrite("C:/Users/jacobth/Pictures/Camera Roll/rec" + (x++) + ".png", receipt);
             // Skew each receipt to make them align
             // @todo Skew + make sure all images have exactly same size.
             // @todo How to re-size without loosing perspective?
