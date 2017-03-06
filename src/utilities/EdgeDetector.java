@@ -52,7 +52,7 @@ public class EdgeDetector {
         return null;
     }
 
-    private MatOfPoint findBoundingPolygon(Mat _source, boolean detectGlare, boolean recursiveCall) {
+    public MatOfPoint findBoundingPolygon(Mat _source, boolean detectGlare, boolean recursiveCall) {
         // If we're detecting glares, we may paint on the specified source
         // which actually is a clone.
         Mat source = detectGlare ? _source.clone() : _source;
@@ -168,6 +168,9 @@ public class EdgeDetector {
      */
     private Mat getCornerMat(Mat source, boolean detectGlare) {
         MatOfPoint2f approxCurve = findBoundingBox(source, detectGlare);
+        if (approxCurve == null) {
+            return null;
+        }
 
         List<Point> points = new ArrayList<>();
         for(int i = 0; i < NUM_CORNERS; i++) {
@@ -229,6 +232,9 @@ public class EdgeDetector {
      */
     public Mat extractBiggestObject(Mat source, boolean detectGlare) {
         Mat mat = getCornerMat(source, detectGlare);
+        if (mat == null) {
+            return null;
+        }
         return skew(source, mat);
     }
 

@@ -35,8 +35,8 @@ public class EdgeDetectorTest {
         Size originalSize = source.size();
 
         // Area of found object should be smaller than source
-        MatOfPoint2f mat = edgeDetector.findBoundingPolygon(source);
-        Rect bounds = boundingRect(new MatOfPoint(mat.toArray()));
+        MatOfPoint mat = edgeDetector.findBoundingPolygon(source, false, false);
+        Rect bounds = boundingRect(mat);
 
         int boundsArea = bounds.width * bounds.height;
 
@@ -50,8 +50,8 @@ public class EdgeDetectorTest {
         Size originalSize = source.size();
 
         // Area of found object should be smaller than source
-        MatOfPoint2f mat = edgeDetector.findBoundingPolygon(source);
-        Rect bounds = boundingRect(new MatOfPoint(mat.toArray()));
+        MatOfPoint mat = edgeDetector.findBoundingPolygon(source, false, false);
+        Rect bounds = boundingRect(mat);
 
         int boundsArea = bounds.width * bounds.height;
 
@@ -62,8 +62,7 @@ public class EdgeDetectorTest {
     @Test
     public void testExtractBiggestObject() {
         Mat source = getMatFromFile("mid-contrast.jpg");
-        Mat extracted = edgeDetector.extractBiggestObject(source);
-        System.out.println();
+        Mat extracted = edgeDetector.extractBiggestObject(source, false);
 
         assertNotNull(extracted);
         assertTrue(extracted.size().width > 0 && extracted.size().height > 0);
