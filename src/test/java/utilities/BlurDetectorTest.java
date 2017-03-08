@@ -5,13 +5,9 @@ import org.junit.Test;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.videoio.VideoCapture;
-import org.opencv.videoio.Videoio;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -58,7 +54,7 @@ public class BlurDetectorTest {
 
         int divide = 4;
 
-        List<BlurDetector.MatPos> list = BlurDetector.getVarianceList(path, divide);
+        List<BlurDetector.MatPos> list = BlurDetector.getVarianceListCols(path, divide);
 
         // Should contain 4 rows and 4 cols, total 16 elements
         assertEquals(divide * divide, list.size());
@@ -92,7 +88,7 @@ public class BlurDetectorTest {
 
         int divide = 3;
 
-        Mat mat = BlurDetector.createImage(frames, divide);
+        Mat mat = BlurDetector.createImageCols(frames, divide);
 
         //Make sure the new image is a large as imageMat or imageMat2.
         assertTrue(mat.cols() == cols || mat.cols() == cols2);
