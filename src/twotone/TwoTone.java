@@ -19,12 +19,12 @@ public class TwoTone {
 
 	public static void main(String args[]) {
 
-		System.load(System.getProperty("java.library.path"));
-		//System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+		//System.load(System.getProperty("java.library.path"));
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		//Create and display original image
 		String imagePath = "src/test/resources/randomimages/";
-		String imageName = "ReceiptSwiss.jpeg";
+		String imageName = "bkkvitto.jpg";
 		String file = imagePath + imageName;
 		Mat image = Imgcodecs.imread(file);
 		Mat resizedImage = resize(image, 600, 600);
@@ -53,7 +53,7 @@ public class TwoTone {
 
 	// Save an image to disk
 	public static void saveImage (BufferedImage image, String dirName, String name) {
-		String path = "/Users/gustavbergstrom/Documents/Kandidat/Output/" + dirName;
+		String path = "C:\\Users\\Joakim\\Documents\\" + dirName;
 		File dir = new File(path);
 		if (!dir.exists()) {
 			dir.mkdir();

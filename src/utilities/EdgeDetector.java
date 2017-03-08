@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import static org.opencv.core.CvType.CV_8U;
 import static org.opencv.imgproc.Imgproc.*;
 import static org.opencv.photo.Photo.inpaint;
+import static utilities.BoxValidation.validateCornerAngleSum;
 
 public class EdgeDetector {
 
@@ -24,7 +25,6 @@ public class EdgeDetector {
     private final int MAT_WIDTH = 500;
     private final int MAT_HEIGHT = 1000;
     private final int NUM_CORNERS = 4;
-    private final static int CORNER_ANGLE_SLACK = 15;
 
     private final ContrastDetector contrastDetector;
 
@@ -57,41 +57,6 @@ public class EdgeDetector {
         return null;
     }
 
-    private boolean validateCornerAngles(MatOfPoint2f boundingPolygon) {
-        Point[] points = boundingPolygon.toArray();
-        int[][] triangles = {
-            new int[]{ 0, 3, 1 }, // top left
-            new int[]{ 1, 0, 2 }, // bottom left
-            new int[]{ 2, 1, 3 }, // bottom right
-            new int[]{ 3, 0, 2 }, // top right
-        };
-
-        for (int[] corners : triangles) {
-            Point p1 = points[corners[0]];
-            Point p2 = points[corners[1]];
-            Point p3 = points[corners[2]];
-            double angle = angle(p1, p2, p3);
-            if (Math.abs(angle - 90) > CORNER_ANGLE_SLACK) {
-                logger.info("Illegal corner detected: {} - {}", Arrays.toString(corners), angle);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private double angle(Point p1, Point p2, Point p3) {
-        double p12 = length(p1, p2);
-        double p13 = length(p1, p3);
-        double p23 = length(p2, p3);
-        // Using the law of cosines
-        double angle = Math.acos((Math.pow(p12, 2) + Math.pow(p13, 2) - Math.pow(p23, 2)) / (2 * p12 * p13));
-        return Math.toDegrees(angle);
-    }
-
-    private double length(Point p1, Point p2) {
-        return Math.sqrt(Math.pow((p1.x - p2.x), 2) + Math.pow((p1.y - p2.y), 2));
-    }
 
     /**
      * Finds a polygon surrounding the biggest object in the image.
@@ -113,7 +78,8 @@ public class EdgeDetector {
 
         // A perfect corner has an angle of 90*.
         // Allow each corner some slack, discard the frame if it's too bad.
-        if (! validateCornerAngles(approximation)) {
+        //if (! validateCornerAngles(approximation)) {
+        if (!validateCornerAngleSum(approximation)) {
             logger.warn("Extracted bounding box has invalid corner angles, discarding");
             return null;
         }

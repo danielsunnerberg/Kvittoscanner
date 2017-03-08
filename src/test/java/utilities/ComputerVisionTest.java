@@ -27,8 +27,8 @@ public class ComputerVisionTest {
     int expectedSumOccurences;
     String expectedVat;
     int expectedVatOccurences;
-    String receiptName = "kvitto";
-    String receiptNameSuffix = ".png";
+    String receiptName = "withoutreflection";
+    String receiptNameSuffix = ".jpg";
 
     @Before
     public void setUp(){
