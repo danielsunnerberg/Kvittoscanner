@@ -17,11 +17,7 @@ public class BoxValidation {
     private final static int ANGLE_ALPHA = 5;
 
     public static boolean validateCornerAngles(MatOfPoint2f boundingPolygon) {
-        double topLeft;
-        double botLeft;
-        double botRight;
-        double topRight;
-        List<Double> angleList = new ArrayList<Double>();
+
         Point[] points = boundingPolygon.toArray();
         int[][] triangles = {
                 new int[]{ 0, 3, 1 }, // top left
@@ -110,9 +106,10 @@ public class BoxValidation {
 
     private static boolean checkAngleSum(double angleSumPrimary, double angleSumSecondary){
         boolean angleStatus = true;
-        if (!(angleSumPrimary >= 180 - ANGLE_ALPHA) && !(angleSumPrimary <= 180 + ANGLE_ALPHA)){
+        if (!(angleSumPrimary >= 180 - ANGLE_ALPHA && angleSumPrimary <= 180 + ANGLE_ALPHA)){
             angleStatus = false;
-        } else if (!(angleSumSecondary >= 180 - ANGLE_ALPHA) && !(angleSumSecondary <= 180 + ANGLE_ALPHA)){
+        }
+        if (!(angleSumSecondary >= 180 - ANGLE_ALPHA && angleSumSecondary <= 180 + ANGLE_ALPHA)){
             angleStatus = false;
         }
         return angleStatus;
