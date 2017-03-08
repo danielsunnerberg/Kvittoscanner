@@ -252,15 +252,8 @@ public class BlurDetector {
 
         for(int i = 0; i < divide; i++) {
 
-            Mat row = new Mat();
-            //A list that will contain all the rows
-
-
             Mat m = mats[i].getMat();
             rowList.add(m);
-
-            //Merge this row together
-
         }
 
         Core.vconcat(rowList, res);
