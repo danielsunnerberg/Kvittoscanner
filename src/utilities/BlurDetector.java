@@ -4,10 +4,6 @@ import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -48,11 +44,11 @@ public class BlurDetector {
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
      * @return a map containing utilities.MatPos and variance value for each subsection.
      */
-    public static List<MatPos> getVarianceList(String file, int divide) {
+    public static List<MatPos> getVarianceListCols(String file, int divide) {
 
         Mat imageMat = Imgcodecs.imread(file);
 
-        List<MatPos> list = getVarianceList(imageMat, divide);
+        List<MatPos> list = getVarianceListCols(imageMat, divide);
 
         return list;
     }
@@ -64,7 +60,7 @@ public class BlurDetector {
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
      * @return a map containing utilities.MatPos and variance value for each subsection.
      */
-    public static List<MatPos> getVarianceList(Mat imageMat, int divide) {
+    public static List<MatPos> getVarianceListCols(Mat imageMat, int divide) {
 
         List<MatPos> list = new LinkedList<>();
 
@@ -123,13 +119,13 @@ public class BlurDetector {
      * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
      * @return a Mat with all the best parts for all different frames
      */
-    public static Mat createImage(List<Mat> frames, int divide) {
+    public static Mat createImageCols(List<Mat> frames, int divide) {
 
         //A list that will contain all the other frames with their splitted parts.
         List<List<MatPos>> varianceLists = new LinkedList<>();
 
         for(Mat mat : frames) {
-            varianceLists.add(getVarianceList(mat, divide));
+            varianceLists.add(getVarianceListCols(mat, divide));
         }
 
         MatPos[][] list = new MatPos[divide][divide];
