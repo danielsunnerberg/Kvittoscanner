@@ -37,7 +37,7 @@ public class TextEnhancer {
 
 		// Convert image to binary using the specified threshold
 		if (thresholdType == ThresholdType.OTSU) {
-			Imgproc.threshold(newMat, newMat, thresh, maxval, Imgproc.THRESH_OTSU);
+			newMat = ThresholdUtils.applyBinaryThresholdWithOtsu(newMat, maxval);
 		}
 
 		return newMat;
@@ -66,7 +66,7 @@ public class TextEnhancer {
 
 		// Convert image to binary using the specified threshold
 		if (thresholdType == ThresholdType.OTSU) {
-			Imgproc.threshold(newMat, newMat, thresh, maxval, Imgproc.THRESH_OTSU);
+			newMat = ThresholdUtils.applyBinaryThresholdWithOtsu(newMat, maxval);
 		}
 
 		return newMat;
