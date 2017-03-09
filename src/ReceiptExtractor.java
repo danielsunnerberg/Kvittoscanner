@@ -46,15 +46,16 @@ public class ReceiptExtractor {
         rotateFrames(frames);
 
         // Extract the receipt from the frames
+        int n = 0;
         List<Mat> receipts = new ArrayList<>();
         for (Mat frame : frames) {
             Mat receipt = edgeDetector.extractBiggestObject(frame, detectGlare);
             if (receipt == null) {
-                // Failed to extract receipt
                 logger.warn("Failed to extract receipt from frame");
                 continue;
             }
 
+            logger.info("Extracted receipt from frame successfully");
             receipts.add(receipt);
         }
 

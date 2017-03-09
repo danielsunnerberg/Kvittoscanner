@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class BoxValidation {
+public class BoxValidation {
 
     private static final Logger logger = LogManager.getLogger(EdgeDetector.class);
 
@@ -135,7 +135,7 @@ class BoxValidation {
      * @param p3 Third point
      * @return Angle formed by the given triangle
      */
-    double angle(Point p1, Point p2, Point p3) {
+    public double angle(Point p1, Point p2, Point p3) {
         double p12 = length(p1, p2);
         double p13 = length(p1, p3);
         double p23 = length(p2, p3);
