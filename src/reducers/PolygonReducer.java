@@ -126,7 +126,7 @@ public class PolygonReducer {
         }
         MatOfPoint2f bAreaRegion = extractAreaRegion(_bRegion, points[a], points[b]);
 
-        if (_aRegion.isEmpty() || _bRegion.isEmpty()) {
+        if (aAreaRegion.total() == 0 || bAreaRegion.total() == 0) {
             logger.info("Polygon reduction failed, one area is empty");
             return null;
         }

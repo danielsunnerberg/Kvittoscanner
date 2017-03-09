@@ -4,9 +4,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opencv.core.*;
 import org.opencv.core.Point;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.photo.Photo;
 import org.opencv.utils.Converters;
+import reducers.InclusionStrategy;
 import reducers.PolygonReducer;
 
 import java.util.*;
@@ -79,7 +81,6 @@ public class EdgeDetector {
         if (approximation.total() > 4) {
             logger.info("Failed to reduce polygon to 4 points, attempting smart reduction.");
             return polygonReducer.smartPolygonReduction(approximation);
-
         } else if (approximation.total() < 4) {
             logger.info("Too few corners in reduction, discarding");
         }
@@ -108,6 +109,7 @@ public class EdgeDetector {
             Imgproc.rectangle(source, glareBoundingBox.br(), glareBoundingBox.tl(), boundingRectColor);
 
             // @todo Do this based on where the glare is located?
+            // @todo Changes here affect hit-rate, do something smarter.
             // Left heavy => re-align
             int xMin = (int) (glareBoundingBox.tl().x - 100);
             if (xMin < 0) {
