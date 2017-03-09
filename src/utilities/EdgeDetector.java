@@ -60,7 +60,8 @@ public class EdgeDetector {
         return approximation;
     }
 
-    private MatOfPoint2f smartPolygonReduction(MatOfPoint2f approximation) {
+    // @todo Extract into class
+    private MatOfPoint2f smartPolygonReduction(MatOfPoint2f approximation, int exclusionMode) {
         final int MAX_REDUCTION_ANGLE = 90 + 10; // @todo Doesn't work with weird perspectives
         Point[] points = approximation.toArray();
 
@@ -121,7 +122,7 @@ public class EdgeDetector {
         List<Point> _aRegion = new ArrayList<>();
         _aRegion.addAll(Arrays.asList(points).subList(a, b + 1));
         MatOfPoint2f aRegion = new MatOfPoint2f(
-            _aRegion.toArray(new Point[_aRegion.size()])
+            _aRegion.stream().toArray(Point[]::new)
         );
 
         // Create a region of points in (points \ aRegion)
@@ -130,10 +131,11 @@ public class EdgeDetector {
             if (i >= a && i <= b) {
                 continue;
             }
+
             _bRegion.add(points[i]);
         }
         MatOfPoint2f bRegion = new MatOfPoint2f(
-            _bRegion.toArray(new Point[_bRegion.size()])
+            _bRegion.stream().toArray(Point[]::new)
         );
 
         if (_aRegion.isEmpty() || _bRegion.isEmpty()) {
@@ -147,9 +149,31 @@ public class EdgeDetector {
         // biggest area. In the event that we choose wrong, the angle detector
         // will discard the frame anyways.
         if (Imgproc.contourArea(aRegion) > Imgproc.contourArea(bRegion)) {
+            System.out.println("a");
             return aRegion;
         } else {
-            return bRegion;
+            switch (exclusionMode) {
+                case 1:
+                    // (a,b]
+                    _bRegion.add(points[b]);
+                    break;
+                case 2:
+                    // [a, b)
+                    _bRegion.add(points[a]);
+                    break;
+                case 3:
+                    // [a,b]
+                    _bRegion.add(points[a]);
+                    _bRegion.add(points[b]);
+                    break;
+                case 0:
+                default:
+                    // (a,b)
+                    break;
+            }
+            return new MatOfPoint2f(
+                _bRegion.stream().toArray(Point[]::new)
+            );
         }
     }
 
@@ -168,28 +192,38 @@ public class EdgeDetector {
         MatOfPoint2f approximation = reducePolygon(boundingPolygon);
         if (approximation.total() > 4) {
             logger.info("Failed to reduce polygon to 4 points, attempting smart reduction.");
-            approximation = smartPolygonReduction(approximation);
-            if (approximation == null || approximation.total() != 4) {
-                logger.info("Smart reduction failed, aborting.");
-                return null;
+            for (int exclusionMode = 0; exclusionMode < 4; exclusionMode ++) {
+                // @todo Document, (a,b), [a,b), ..., angle validation for all examples
+
+                MatOfPoint2f smartReduction = smartPolygonReduction(approximation, exclusionMode);
+                if (smartReduction == null || smartReduction.total() != 4) {
+                    logger.info("Smart reduction (try {}) failed, discarding", exclusionMode);
+                    continue;
+                }
+
+                // We have a reduction with 4 points, validate all corners.
+                // A perfect corner has an angle of 90*.
+                // Allow each corner some slack, discard the frame if it's too bad.
+                if (boxValidation.validateCornerAngles(smartReduction)) {
+                    logger.info("Found valid smart reduction in {} tries", exclusionMode);
+                    return smartReduction;
+                } else {
+                    logger.info("Smart reduction has invalid corners, discarding");
+                }
             }
+        } else if (approximation.total() < 4) {
+            logger.info("Too few corners in reduction, discarding");
         }
 
-        // A perfect corner has an angle of 90*.
-        // Allow each corner some slack, discard the frame if it's too bad.
-        //if (! validateCornerAngles(approximation)) {
-        if (! boxValidation.validateCornerAngles(approximation)) {
-            logger.warn("Extracted bounding box has invalid corner angles, discarding");
-            return null;
-        }
+        // @todo Validate angles here, points == 4
 
-        return approximation;
+        return null;
     }
 
     MatOfPoint findBoundingPolygon(Mat _source, boolean detectGlare, boolean recursiveCall) {
         // If we're detecting glares, we may paint on the specified source
         // which actually is a clone.
-        Mat source = recursiveCall ? _source : _source.clone();
+        Mat source = _source; //recursiveCall ? _source : _source.clone();
 
         if (detectGlare && ! recursiveCall) {
             // @todo Do not use this flag blindly, do some own detection?
@@ -206,7 +240,7 @@ public class EdgeDetector {
 
             // @todo Do this based on where the glare is located?
             // Left heavy => re-align
-            int xMin = (int) (glareBoundingBox.tl().x + 0);
+            int xMin = (int) (glareBoundingBox.tl().x - 100);
             if (xMin < 0) {
                 xMin = 0;
             }
