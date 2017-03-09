@@ -1,6 +1,8 @@
 package enhanceText;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 /**
@@ -11,7 +13,7 @@ import org.opencv.imgproc.Imgproc;
 public class ThresholdUtils {
 
 	/**
-	 * Applies a threshold to a matrix.
+	 * Applies a threshold to a matrix that is in gray scale.
 	 *
 	 * @param mat The matrix to apply the threshold to.
 	 * @param threshold The threshold value. Should be between 0 and 255.
@@ -44,7 +46,7 @@ public class ThresholdUtils {
 	}
 
 	/**
-	 * Applies an adaptive threshold to a matrix.
+	 * Applies an adaptive threshold to a matrix that is in gray scale.
 	 *
 	 * @param mat The matrix to apply the threshold to.
 	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
@@ -69,6 +71,27 @@ public class ThresholdUtils {
 
 		Mat modifiedMat = new Mat();
 		Imgproc.adaptiveThreshold(mat, modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
+		return modifiedMat;
+	}
+
+	/**
+	 * Applies a ranged threshold to a matrix that is in RGB. The pixels that are in the ranges are set to white.
+	 * All other pixels are set to black.
+	 *
+	 * @param mat The matrix to apply the threshold to.
+	 * @param low_b The lower threshold for the blue channel.
+	 * @param low_g The lower threshold for the green channel.
+	 * @param low_r The lower threshold for the red channel.
+	 * @param high_b The higher threshold for the blue channel.
+	 * @param high_g The higher threshold for the green channel.
+	 * @param high_r The higher threshold for the red channel.
+	 * @return A matrix with the threshold applied.
+	 */
+	public static Mat applyRangedThreshold (
+			Mat mat, int low_b, int low_g, int low_r, int high_b, int high_g, int high_r) {
+
+		Mat modifiedMat = new Mat();
+		Core.inRange(mat, new Scalar(low_b, low_g, low_r), new Scalar (high_b, high_g, high_r), modifiedMat);
 		return modifiedMat;
 	}
 }
