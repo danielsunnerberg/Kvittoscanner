@@ -35,9 +35,9 @@ public class TextEnhancer {
 		// Apply Gaussian blur to image
 		Imgproc.GaussianBlur(newMat, newMat, new Size(kernelWidth, kernelHeight), sigma);
 
-		// Convert image to binary using the specified threshold
+		// Apply the specified threshold
 		if (thresholdType == ThresholdType.OTSU) {
-			newMat = ThresholdUtils.applyBinaryThresholdWithOtsu(newMat, maxval);
+			newMat = ThresholdUtils.applyThreshold(newMat, 0, maxval, Imgproc.THRESH_BINARY, true);
 		}
 
 		return newMat;
@@ -64,9 +64,9 @@ public class TextEnhancer {
 		// Apply Median blur to image
 		Imgproc.medianBlur(newMat, newMat, ksize);
 
-		// Convert image to binary using the specified threshold
+		// Apply the specified threshold
 		if (thresholdType == ThresholdType.OTSU) {
-			newMat = ThresholdUtils.applyBinaryThresholdWithOtsu(newMat, maxval);
+			newMat = ThresholdUtils.applyThreshold(newMat, 0, maxval, Imgproc.THRESH_BINARY, true);
 		}
 
 		return newMat;
