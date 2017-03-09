@@ -25,14 +25,19 @@ public class PolygonReducer {
         this.boxValidation = new BoxValidation();
     }
 
-    // @todo Doc
-
+    /**
+     * Tries to reduce the given polygon to four points, by removing
+     * points which (3-wise) has an angle with illegal slack. Performs
+     * various tries with different inclusion policies.
+     *
+     * @param approximation Polygon to be reduced
+     * @return null|the reduced polygon
+     */
     public MatOfPoint2f smartPolygonReduction(MatOfPoint2f approximation) {
         int tryCounter = 0;
         for (InclusionStrategy inclusionStrategy : InclusionStrategy.values()) {
             tryCounter++;
 
-            // @todo Document, (a,b), [a,b), ..., angle validation for all examples
             MatOfPoint2f smartReduction = smartPolygonReduction(approximation, inclusionStrategy);
             if (smartReduction == null || smartReduction.total() != 4) {
                 logger.info("Smart reduction (try {}) failed, discarding", tryCounter);
@@ -115,7 +120,7 @@ public class PolygonReducer {
         _aRegion.addAll(Arrays.asList(points).subList(a, b + 1)); // [a..b]
         MatOfPoint2f aAreaRegion = extractAreaRegion(_aRegion, points[a], points[b]);
 
-        // Create a region of points in (points \ aRegion)
+        // Create a region of points in (points \ aRegion) + (a,b)
         List<Point> _bRegion = new ArrayList<>();
         for (int i = 0; i < points.length; i++) {
             if (i > a && i < b) { // [a..b]
@@ -131,16 +136,12 @@ public class PolygonReducer {
             return null;
         }
 
-        // When creating aRegion/bRegion, include both a and b.
-        // When calculating the area, remove both.
-        // When returning, let inclusion strategy decide
-        // @todo ^
-
-        // We now have two regions, aRegion and bRegion. One of these (hopefully)
+        // We now have two regions, aAreaRegion and bArea`Region. One of these (hopefully)
         // contains glare and the other the receipt without the glare.
         // A simple, but not always correct filter is simply choosing the one with the
         // biggest area. In the event that we choose wrong, the angle detector
-        // will discard the frame anyways.
+        // will discard the frame anyways. We can choose to include/exclude a and b
+        // in various ways, which is decided by the provided inclusion strategy.
         if (Imgproc.contourArea(aAreaRegion) > Imgproc.contourArea(bAreaRegion)) {
             return inclusionStrategy.include(_aRegion, points[a], points[b]);
         } else {

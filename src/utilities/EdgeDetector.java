@@ -62,9 +62,6 @@ public class EdgeDetector {
         return approximation;
     }
 
-    // @todo Extract into class
-
-
     /**
      * Finds a polygon surrounding the biggest object in the image.
      *
