@@ -112,7 +112,43 @@ public class TextEnhancer {
 		return modifiedMat;
 	}
 
+	/**
+	 * Enhance text using Gaussian blur and a ranged threshold.
+	 *
+	 * @param mat The matrix to enhance text in.
+	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
+	 * @param kernelHeight The kernel height to apply gaussian blur with. Default is 3.
+	 * @param sigma The standard deviation to be used when applying gaussian blue. Default is 0.
+	 * @param grayScale If true, the image is converted to gray scale before applying blur.
+	 * @param low_b The lower threshold for the blue channel.
+	 * @param low_g The lower threshold for the green channel.
+	 * @param low_r The lower threshold for the red channel.
+	 * @param high_b The higher threshold for the blue channel.
+	 * @param high_g The higher threshold for the green channel.
+	 * @param high_r The higher threshold for the red channel.
+	 * @return A matrix with enhanced text.
+	 */
+	public static Mat gaussianBlurAndRangedThreshold (
+			Mat mat, boolean grayScale, int kernelWidth, int kernelHeight, int sigma,
+			int low_b, int low_g, int low_r, int high_b, int high_g, int high_r) {
 
+		Mat modifiedMat = new Mat();
+
+		if (grayScale) {
+			// Convert image to gray scale
+			Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
+		} else {
+			modifiedMat = mat;
+		}
+
+		// Apply Gaussian blur to image
+		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
+
+		// Apply ranged threshold to image
+		modifiedMat = ThresholdUtils.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
+
+		return modifiedMat;
+	}
 
 	/**
 	 * Enhance text using median blur and a threshold.
@@ -208,10 +244,45 @@ public class TextEnhancer {
 	}
 
 	/**
+	 * Enhance text using median blur and a ranged threshold.
+	 *
+	 * @param mat The matrix to enhance text in.
+	 * @param kernelSize The kernel size to apply gaussian blur with. Default is 3.
+	 * @param grayScale If true, the image is converted to gray scale before applying blur.
+	 * @param low_b The lower threshold for the blue channel.
+	 * @param low_g The lower threshold for the green channel.
+	 * @param low_r The lower threshold for the red channel.
+	 * @param high_b The higher threshold for the blue channel.
+	 * @param high_g The higher threshold for the green channel.
+	 * @param high_r The higher threshold for the red channel.
+	 * @return A matrix with enhanced text.
+	 */
+	public static Mat medianBlurAndRangedThreshold (Mat mat, boolean grayScale, int kernelSize,
+			int low_b, int low_g, int low_r, int high_b, int high_g, int high_r) {
+
+		Mat modifiedMat = new Mat();
+
+		if (grayScale) {
+			// Convert image to gray scale
+			Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
+		} else {
+			modifiedMat = mat;
+		}
+
+		// Apply median blur to image
+		Imgproc.medianBlur(modifiedMat, modifiedMat, kernelSize);
+
+		// Apply ranged threshold to image
+		modifiedMat = ThresholdUtils.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
+
+		return modifiedMat;
+	}
+
+	/**
 	 * Enhance text using a threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
-	 * @param grayScale If true, the image is converted to gray scale before applying blur. Must be true if otsu is true.
+	 * @param grayScale If true, the image is converted to gray scale before applying threshold. Must be true if otsu is true.
 	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
 	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
 	 *                      All other pixels are set to 0.
@@ -257,7 +328,7 @@ public class TextEnhancer {
 	}
 
 	/**
-	 * Enhance text using a threshold.
+	 * Enhance text using an adaptive threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
@@ -288,6 +359,37 @@ public class TextEnhancer {
 		// Apply threshold to image
 		modifiedMat = ThresholdUtils.applyAdaptiveThreshold(
 				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
+
+		return modifiedMat;
+	}
+
+	/**
+	 * Enhance text using a ranged threshold.
+	 *
+	 * @param mat The matrix to enhance text in.
+	 * @param grayScale If true, the image is converted to gray scale before applying threshold.
+	 * @param low_b The lower threshold for the blue channel.
+	 * @param low_g The lower threshold for the green channel.
+	 * @param low_r The lower threshold for the red channel.
+	 * @param high_b The higher threshold for the blue channel.
+	 * @param high_g The higher threshold for the green channel.
+	 * @param high_r The higher threshold for the red channel.
+	 * @return A matrix with enhanced text.
+	 */
+	public static Mat onlyRangedThreshold (
+			Mat mat, boolean grayScale, int low_b, int low_g, int low_r, int high_b, int high_g, int high_r) {
+
+		Mat modifiedMat = new Mat();
+
+		if (grayScale) {
+			// Convert image to gray scale
+			Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
+		} else {
+			modifiedMat = mat;
+		}
+
+		// Apply ranged threshold to image
+		modifiedMat = ThresholdUtils.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
 
 		return modifiedMat;
 	}
