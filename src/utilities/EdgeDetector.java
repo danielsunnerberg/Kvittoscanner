@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import static org.opencv.core.CvType.CV_8U;
 import static org.opencv.imgproc.Imgproc.*;
 import static org.opencv.photo.Photo.inpaint;
-import static utilities.BoxValidation.validateCornerAngleSum;
 
 public class EdgeDetector {
 
@@ -27,20 +26,24 @@ public class EdgeDetector {
     private final int NUM_CORNERS = 4;
 
     private final ContrastDetector contrastDetector;
+    private final BoxValidation boxValidation;
 
     public EdgeDetector() {
         contrastDetector = new ContrastDetector();
+        boxValidation = new BoxValidation();
     }
 
     // @todo Mask if we have all frames?
 
     private MatOfPoint2f reducePolygon(MatOfPoint2f polygon) {
         double epsilonFactor = 0.50;
+
+        MatOfPoint2f approximation = null;
         for (int reduceCounter = 0; reduceCounter < 30; reduceCounter++) {
             // Simplify the found polygon to contain only the 4 corners.
             // This is a bit tricky, as we cannot directly specify how many points we WANT;
             // so we have to try with a few epsilon-values.
-            MatOfPoint2f approximation = new MatOfPoint2f();
+            approximation = new MatOfPoint2f();
             Imgproc.approxPolyDP(polygon, approximation, polygon.total() * epsilonFactor, true);
 
             long points = approximation.total();
@@ -54,9 +57,101 @@ public class EdgeDetector {
             }
         }
 
-        return null;
+        return approximation;
     }
 
+    private MatOfPoint2f smartPolygonReduction(MatOfPoint2f approximation) {
+        final int MAX_REDUCTION_ANGLE = 90 + 10; // @todo Doesn't work with weird perspectives
+        Point[] points = approximation.toArray();
+
+        // Find the first point with a too wide/narrow angle, a
+        Integer a = null;
+        for (int i = 0; i < points.length; i++) {
+            Point p1 = points[i];
+            Point p2 = points[Math.floorMod(i - 1, points.length)];
+            Point p3 = points[Math.floorMod(i + 1, points.length)];
+
+            if (Math.abs(boxValidation.angle(p1, p2, p3)) > MAX_REDUCTION_ANGLE) {
+                logger.info("Found first extreme point, {}", i);
+                a = i;
+                break;
+            }
+        }
+
+        if (a == null) {
+            logger.info("Failed to get first extreme point.");
+            return null;
+        }
+
+        // Walking backwards, find the next point with a too wide/narrow angle, b
+        Integer b = null;
+        for (int i = points.length - 1; i >= 0; i--) {
+            Point p1 = points[i];
+            Point p2 = points[Math.floorMod(i - 1, points.length)];
+            Point p3 = points[Math.floorMod(i + 1, points.length)];
+
+            if (Math.abs(boxValidation.angle(p1, p2, p3)) > MAX_REDUCTION_ANGLE) {
+                logger.info("Found second extreme point, {}", i);
+                b = i;
+                break;
+            }
+        }
+
+        if (b == null) {
+            logger.info("Failed to get second extreme point.");
+            return null;
+        }
+
+        if (Objects.equals(a, b)) {
+            logger.info("Found extreme points are identical, removing single point");
+            List<Point> reduced = new ArrayList<>();
+            for (int i = 0; i < points.length; i++) {
+                if (i == a) {
+                    continue;
+                }
+                reduced.add(points[i]);
+            }
+
+            return new MatOfPoint2f(
+                reduced.toArray(new Point[reduced.size()])
+            );
+        }
+
+        // Create a region of points in [a..b]
+        List<Point> _aRegion = new ArrayList<>();
+        _aRegion.addAll(Arrays.asList(points).subList(a, b + 1));
+        MatOfPoint2f aRegion = new MatOfPoint2f(
+            _aRegion.toArray(new Point[_aRegion.size()])
+        );
+
+        // Create a region of points in (points \ aRegion)
+        List<Point> _bRegion = new ArrayList<>();
+        for (int i = 0; i < points.length; i++) {
+            if (i >= a && i <= b) {
+                continue;
+            }
+            _bRegion.add(points[i]);
+        }
+        MatOfPoint2f bRegion = new MatOfPoint2f(
+            _bRegion.toArray(new Point[_bRegion.size()])
+        );
+
+        if (_aRegion.isEmpty() || _bRegion.isEmpty()) {
+            logger.info("Polygon reduction failed, one area is empty");
+            return null;
+        }
+
+        // We now have two regions, aRegion and bRegion. One of these (hopefully)
+        // contains glare and the other the receipt without the glare.
+        // A simple, but not always correct filter is simply choosing the one with the
+        // biggest area. In the event that we choose wrong, the angle detector
+        // will discard the frame anyways.
+        if (Imgproc.contourArea(aRegion) > Imgproc.contourArea(bRegion)) {
+            return aRegion;
+        } else {
+            return bRegion;
+        }
+    }
 
     /**
      * Finds a polygon surrounding the biggest object in the image.
@@ -71,28 +166,22 @@ public class EdgeDetector {
         );
 
         MatOfPoint2f approximation = reducePolygon(boundingPolygon);
-        if (approximation == null) {
-            logger.warn("Failed to reduce bounding polygon to 4 points");
-            return null;
+        if (approximation.total() > 4) {
+            logger.info("Failed to reduce polygon to 4 points, attempting smart reduction.");
+            approximation = smartPolygonReduction(approximation);
+            if (approximation == null || approximation.total() != 4) {
+                logger.info("Smart reduction failed, aborting.");
+                return null;
+            }
         }
 
         // A perfect corner has an angle of 90*.
         // Allow each corner some slack, discard the frame if it's too bad.
         //if (! validateCornerAngles(approximation)) {
-        if (!validateCornerAngleSum(approximation)) {
+        if (! boxValidation.validateCornerAngles(approximation)) {
             logger.warn("Extracted bounding box has invalid corner angles, discarding");
             return null;
         }
-
-        MatOfPoint fc2 = new MatOfPoint(approximation.toArray());
-        List<MatOfPoint> fc2l = new ArrayList<>();
-        fc2l.add(fc2);
-
-        Scalar color = new Scalar(255, 0, 0);
-        Imgproc.drawContours(source, fc2l, 0, color, 2, 8, new Mat(), 0, new Point());
-
-        String filename = "C:\\Users\\daniel-windevbox\\Desktop\\frames\\glare\\out_bb_" + source.dataAddr() + ".png";
-        Imgcodecs.imwrite(filename, source);
 
         return approximation;
     }
