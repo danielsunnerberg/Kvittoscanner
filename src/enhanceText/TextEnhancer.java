@@ -69,25 +69,48 @@ public class TextEnhancer {
 		return modifiedMat;
 	}
 
-//	public static Mat gaussianBlurAndAdaptiveThreshold (
-//			Mat mat, int kernelWidth, int kernelHeight, int sigma, int maxval, int adaptiveMethod, int thresholdType, int blockSize) {
-//
-//		Mat modifiedMat = new Mat();
-//
-//		// Convert image to gray scale
-//		Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
-//
-//		// Apply Gaussian blur to image
-//		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
-//
-//		if (thresholdType != THRESH_NONE) {
-//			// Apply threshold to image
-//			modifiedMat = ThresholdUtils.applyThreshold(modifiedMat, threshold, maxval, thresholdType);
-//			modifiedMat = ThresholdUtils.applyAdaptiveThreshold(modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize);
-//		}
-//
-//		return modifiedMat;
-//	}
+	/**
+	 * Enhance text using Gaussian blur and an adaptive threshold.
+	 *
+	 * @param mat The matrix to enhance text in.
+	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
+	 * @param kernelHeight The kernel height to apply gaussian blur with. Default is 3.
+	 * @param sigma The standard deviation to be used when applying gaussian blue. Default is 0.
+	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
+	 * @param adaptiveMethod The adaptive thresholding algorithm to use. Can be one of the following values:
+	 *                       ADAPTIVE_THRESH_MEAN_C The threshold value T(x,y) is a mean of the blockSize * blockSize
+	 *                       neighborhood of (x, y) minus C.
+	 *                       ADAPTIVE_THRESH_GAUSSIAN_C The threshold value T(x,y) is a weighted sum of the
+	 *                       blockSize * blockSize neighborhood of (x, y) minus C.
+	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
+	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
+	 *                      All other pixels are set to 0.
+	 *                      THRESH_BINARY_INV Pixels with a higher value than the threshold are set to 0.
+	 *                      All other pixels are set to maxval.
+	 * @param blockSize Size of a pixel neighborhood that is used to calculate a threshold value for the pixel.
+	 *                  The value should be odd: 3, 5, 7, and so on.
+	 * @param c Constant subtracted from the mean or weighted mean.
+	 *          Normally, it is positive but may be zero or negative as well. Default is 5.
+	 * @return A matrix with enhanced text.
+	 */
+	public static Mat gaussianBlurAndAdaptiveThreshold (
+			Mat mat, int kernelWidth, int kernelHeight, int sigma, double maxval, int adaptiveMethod,
+			int thresholdType, int blockSize, double c) {
+
+		Mat modifiedMat = new Mat();
+
+		// Convert image to gray scale
+		Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
+
+		// Apply Gaussian blur to image
+		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
+
+		// Apply threshold to image
+		modifiedMat = ThresholdUtils.applyAdaptiveThreshold (
+				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
+
+		return modifiedMat;
+	}
 
 	/**
 	 * Enhance text using median blur and a threshold.
@@ -138,6 +161,46 @@ public class TextEnhancer {
 			// Apply threshold to image
 			modifiedMat = ThresholdUtils.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
 		}
+
+		return modifiedMat;
+	}
+
+	/**
+	 * Enhance text using median blur and an adaptive threshold.
+	 *
+	 * @param mat The matrix to enhance text in.
+	 * @param kernelSize The kernel size to apply median blur with. Default is 3.
+	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
+	 * @param adaptiveMethod The adaptive thresholding algorithm to use. Can be one of the following values:
+	 *                       ADAPTIVE_THRESH_MEAN_C The threshold value T(x,y) is a mean of the blockSize * blockSize
+	 *                       neighborhood of (x, y) minus C.
+	 *                       ADAPTIVE_THRESH_GAUSSIAN_C The threshold value T(x,y) is a weighted sum of the
+	 *                       blockSize * blockSize neighborhood of (x, y) minus C.
+	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
+	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
+	 *                      All other pixels are set to 0.
+	 *                      THRESH_BINARY_INV Pixels with a higher value than the threshold are set to 0.
+	 *                      All other pixels are set to maxval.
+	 * @param blockSize Size of a pixel neighborhood that is used to calculate a threshold value for the pixel.
+	 *                  The value should be odd: 3, 5, 7, and so on.
+	 * @param c Constant subtracted from the mean or weighted mean.
+	 *          Normally, it is positive but may be zero or negative as well. Default is 5.
+	 * @return A matrix with enhanced text.
+	 */
+	public static Mat medianBlurAndAdaptiveThreshold (
+			Mat mat, int kernelSize, double maxval, int adaptiveMethod, int thresholdType, int blockSize, double c) {
+
+		Mat modifiedMat = new Mat();
+
+		// Convert image to gray scale
+		Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
+
+		// Apply median blur to image
+		Imgproc.medianBlur(modifiedMat, modifiedMat, kernelSize);
+
+		// Apply threshold to image
+		modifiedMat = ThresholdUtils.applyAdaptiveThreshold (
+				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
 
 		return modifiedMat;
 	}
