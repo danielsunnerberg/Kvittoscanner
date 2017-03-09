@@ -2,11 +2,12 @@ package reducers;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import utilities.BoxValidation;
-import utilities.EdgeDetector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +17,7 @@ import java.util.Objects;
 public class PolygonReducer {
 
     private static final Logger logger = LogManager.getLogger(PolygonReducer.class);
-    private final static int MAX_REDUCTION_ANGLE = 90 + 10;
+    private final static int MAX_REDUCTION_DELTA = 10;
 
     private BoxValidation boxValidation;
 
@@ -53,7 +54,7 @@ public class PolygonReducer {
         return null;
     }
 
-    private MatOfPoint2f smartPolygonReduction(MatOfPoint2f approximation, InclusionStrategy inclusionStrategy) {
+    public MatOfPoint2f smartPolygonReduction(MatOfPoint2f approximation, InclusionStrategy inclusionStrategy) {
         Point[] points = approximation.toArray();
 
         // Find the first point with a too wide/narrow angle, a
@@ -63,7 +64,7 @@ public class PolygonReducer {
             Point p2 = points[Math.floorMod(i - 1, points.length)];
             Point p3 = points[Math.floorMod(i + 1, points.length)];
 
-            if (Math.abs(boxValidation.angle(p1, p2, p3)) > MAX_REDUCTION_ANGLE) {
+            if (Math.abs(boxValidation.angle(p1, p2, p3) - 90) > MAX_REDUCTION_DELTA) {
                 logger.info("Found first extreme point, {}", i);
                 a = i;
                 break;
@@ -82,7 +83,7 @@ public class PolygonReducer {
             Point p2 = points[Math.floorMod(i - 1, points.length)];
             Point p3 = points[Math.floorMod(i + 1, points.length)];
 
-            if (Math.abs(boxValidation.angle(p1, p2, p3)) > MAX_REDUCTION_ANGLE) {
+            if (Math.abs(boxValidation.angle(p1, p2, p3) - 90) > MAX_REDUCTION_DELTA) {
                 logger.info("Found second extreme point, {}", i);
                 b = i;
                 break;
@@ -105,45 +106,55 @@ public class PolygonReducer {
             }
 
             return new MatOfPoint2f(
-                    reduced.toArray(new Point[reduced.size()])
+                reduced.toArray(new Point[reduced.size()])
             );
         }
 
         // Create a region of points in [a..b]
         List<Point> _aRegion = new ArrayList<>();
-        _aRegion.addAll(Arrays.asList(points).subList(a, b + 1));
-        MatOfPoint2f aRegion = new MatOfPoint2f(
-                _aRegion.stream().toArray(Point[]::new)
-        );
+        _aRegion.addAll(Arrays.asList(points).subList(a, b + 1)); // [a..b]
+        MatOfPoint2f aAreaRegion = extractAreaRegion(_aRegion, points[a], points[b]);
 
         // Create a region of points in (points \ aRegion)
         List<Point> _bRegion = new ArrayList<>();
         for (int i = 0; i < points.length; i++) {
-            if (i >= a && i <= b) {
+            if (i > a && i < b) { // [a..b]
                 continue;
             }
 
             _bRegion.add(points[i]);
         }
-        MatOfPoint2f bRegion = new MatOfPoint2f(
-                _bRegion.stream().toArray(Point[]::new)
-        );
+        MatOfPoint2f bAreaRegion = extractAreaRegion(_bRegion, points[a], points[b]);
 
         if (_aRegion.isEmpty() || _bRegion.isEmpty()) {
             logger.info("Polygon reduction failed, one area is empty");
             return null;
         }
 
+        // When creating aRegion/bRegion, include both a and b.
+        // When calculating the area, remove both.
+        // When returning, let inclusion strategy decide
+        // @todo ^
+
         // We now have two regions, aRegion and bRegion. One of these (hopefully)
         // contains glare and the other the receipt without the glare.
         // A simple, but not always correct filter is simply choosing the one with the
         // biggest area. In the event that we choose wrong, the angle detector
         // will discard the frame anyways.
-        if (Imgproc.contourArea(aRegion) > Imgproc.contourArea(bRegion)) {
+        if (Imgproc.contourArea(aAreaRegion) > Imgproc.contourArea(bAreaRegion)) {
             return inclusionStrategy.include(_aRegion, points[a], points[b]);
         } else {
             return inclusionStrategy.include(_bRegion, points[a], points[b]);
         }
+    }
+
+    private MatOfPoint2f extractAreaRegion(List<Point> bRegion, Point a, Point b) {
+        List<Point> areaRegion = new ArrayList<>(bRegion);
+        areaRegion.remove(a);
+        areaRegion.remove(b);
+        return new MatOfPoint2f(
+            areaRegion.stream().toArray(Point[]::new)
+        );
     }
 
 }

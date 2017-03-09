@@ -12,11 +12,11 @@ import java.util.List;
  * (a,b]
  * [a,b]
  */
-enum InclusionStrategy {
-    NOT_A_NOT_B((region, a, b) -> { /* Do not include either */ }),
-    A_NOT_B((region, a, b) -> { region.add(a); }),
-    NOT_A_B((region, a, b) -> { region.add(b); }),
-    A_AND_B((region, a, b) -> { region.add(a); region.add(b); });
+public enum InclusionStrategy {
+    NOT_A_NOT_B((region, a, b) -> { region.remove(a); region.remove(b); }),
+    A_NOT_B((region, a, b) -> region.remove(b)),
+    NOT_A_B((region, a, b) -> region.remove(a)),
+    A_AND_B((region, a, b) -> { /* Keep both */ });
 
     private final IncludeOperator includeOperator;
 
@@ -36,7 +36,6 @@ enum InclusionStrategy {
         return new MatOfPoint2f(
             region.stream().toArray(Point[]::new)
         );
-
     }
 
     private interface IncludeOperator {
