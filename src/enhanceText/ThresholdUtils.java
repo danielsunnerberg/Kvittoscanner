@@ -48,13 +48,21 @@ public class ThresholdUtils {
 	 *
 	 * @param mat The matrix to apply the threshold to.
 	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
-	 * @param adaptiveMethod Adaptive thresholding algorithm to use, ADAPTIVE_THRESH_MEAN_C or ADAPTIVE_THRESH_GAUSSIAN_C.
-	 * @param thresholdType Thresholding type that must be either THRESH_BINARY or THRESH_BINARY_INV.
+	 * @param adaptiveMethod The adaptive thresholding algorithm to use. Can be one of the following values:
+	 *                       ADAPTIVE_THRESH_MEAN_C The threshold value T(x,y) is a mean of the blockSize * blockSize
+	 *                       neighborhood of (x, y) minus C.
+	 *                       ADAPTIVE_THRESH_GAUSSIAN_C The threshold value T(x,y) is a weighted sum of the
+	 *                       blockSize * blockSize neighborhood of (x, y) minus C.
+	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
+	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
+	 *                      All other pixels are set to 0.
+	 *                      THRESH_BINARY_INV Pixels with a higher value than the threshold are set to 0.
+	 *                      All other pixels are set to maxval.
 	 * @param blockSize Size of a pixel neighborhood that is used to calculate a threshold value for the pixel.
 	 *                  The value should be odd: 3, 5, 7, and so on.
 	 * @param c Constant subtracted from the mean or weighted mean.
 	 *          Normally, it is positive but may be zero or negative as well. Default is 5.
-	 * @return A matrix with the the threshold applied.
+	 * @return A matrix with the threshold applied.
 	 */
 	public static Mat applyAdaptiveThreshold (
 			Mat mat, double maxval, int adaptiveMethod, int thresholdType, int blockSize, double c) {
