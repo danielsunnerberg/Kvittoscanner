@@ -143,4 +143,25 @@ public class ThresholdUtils {
 		Imgproc.threshold(mat, modifiedMat, threshold, maxval, type);
 		return modifiedMat;
 	}
+
+	/**
+	 * Applies an adaptive threshold to a matrix.
+	 * 
+	 * @param mat The matrix to apply the threshold to.
+	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
+	 * @param adaptiveMethod Adaptive thresholding algorithm to use, ADAPTIVE_THRESH_MEAN_C or ADAPTIVE_THRESH_GAUSSIAN_C.
+	 * @param thresholdType Thresholding type that must be either THRESH_BINARY or THRESH_BINARY_INV.
+	 * @param blockSize Size of a pixel neighborhood that is used to calculate a threshold value for the pixel.
+	 *                  The value should be odd: 3, 5, 7, and so on.
+	 * @param c Constant subtracted from the mean or weighted mean.
+	 *          Normally, it is positive but may be zero or negative as well. Default is 5.
+	 * @return A matrix with the the threshold applied.
+	 */
+	public static Mat applyAdaptiveThreshold (
+			Mat mat, double maxval, int adaptiveMethod, int thresholdType, int blockSize, double c) {
+
+		Mat modifiedMat = new Mat();
+		Imgproc.adaptiveThreshold(mat, modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
+		return modifiedMat;
+	}
 }
