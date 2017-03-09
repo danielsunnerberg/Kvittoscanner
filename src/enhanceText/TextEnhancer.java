@@ -112,6 +112,8 @@ public class TextEnhancer {
 		return modifiedMat;
 	}
 
+
+
 	/**
 	 * Enhance text using median blur and a threshold.
 	 *
@@ -200,6 +202,91 @@ public class TextEnhancer {
 
 		// Apply threshold to image
 		modifiedMat = ThresholdUtils.applyAdaptiveThreshold (
+				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
+
+		return modifiedMat;
+	}
+
+	/**
+	 * Enhance text using a threshold.
+	 *
+	 * @param mat The matrix to enhance text in.
+	 * @param grayScale If true, the image is converted to gray scale before applying blur. Must be true if otsu is true.
+	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
+	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
+	 *                      All other pixels are set to 0.
+	 *                      THRESH_BINARY_INV Pixels with a higher value than the threshold are set to 0.
+	 *                      All other pixels are set to maxval.
+	 *                      THRESH_TRUNC Pixels with a higher value than the threshold are set to the threshold value.
+	 *                      All other pixels are kept as they are.
+	 *                      THRESH_TOZERO Pixels with a higher value than the threshold are kept as they are.
+	 *                      All other pixels are set to 0.
+	 *                      THRESH_TOZERO_INV Pixels with a higher value than the threshold are set to 0.
+	 *                      All other pixels are kept as they are.
+	 *                      THRESH_NONE No threshold is applied.
+	 * @param threshold The threshold value. Should be between 0 and 255.
+	 *                  This value is only used when otsu is set to false. Otherwise it can be set to anything.
+	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
+	 *               This value is only used when thresholdType is set to THRESH_BINARY and THRESH_BINARY_INV.
+	 *               Otherwise it can be set to anything.
+	 * @param otsu If false, the given threshold value is used. If true, the threshold is calculated using Otsu's method.
+	 *             This value is only used when thresholdType is not set to THRESH_NONE. Otherwise it can be set to anything.
+	 * @return A matrix with enhanced text.
+	 */
+	public static Mat onlyThreshold (
+			Mat mat, boolean grayScale, int thresholdType, int threshold, int maxval, boolean otsu) {
+
+		Mat modifiedMat = new Mat();
+
+		if (grayScale) {
+			// Convert image to gray scale
+			Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
+		} else if (otsu) {
+			System.out.println("[TextEnhancer] (onlyThreshold): grayScale must be true if otsu is true");
+			return mat;
+		} else {
+			modifiedMat = mat;
+		}
+
+		if (thresholdType != THRESH_NONE) {
+			// Apply threshold to image
+			modifiedMat = ThresholdUtils.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
+		}
+
+		return modifiedMat;
+	}
+
+	/**
+	 * Enhance text using a threshold.
+	 *
+	 * @param mat The matrix to enhance text in.
+	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
+	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
+	 *                      All other pixels are set to 0.
+	 *                      THRESH_BINARY_INV Pixels with a higher value than the threshold are set to 0.
+	 *                      All other pixels are set to maxval.
+	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
+	 * @param adaptiveMethod The adaptive thresholding algorithm to use. Can be one of the following values:
+	 *                       ADAPTIVE_THRESH_MEAN_C The threshold value T(x,y) is a mean of the blockSize * blockSize
+	 *                       neighborhood of (x, y) minus C.
+	 *                       ADAPTIVE_THRESH_GAUSSIAN_C The threshold value T(x,y) is a weighted sum of the
+	 *                       blockSize * blockSize neighborhood of (x, y) minus C.
+	 * @param blockSize Size of a pixel neighborhood that is used to calculate a threshold value for the pixel.
+	 *                  The value should be odd: 3, 5, 7, and so on.
+	 * @param c Constant subtracted from the mean or weighted mean.
+	 *          Normally, it is positive but may be zero or negative as well. Default is 5.
+	 * @return A matrix with enhanced text.
+	 */
+	public static Mat onlyAdaptiveThreshold (
+			Mat mat, int thresholdType, double maxval, int adaptiveMethod, int blockSize, int c) {
+
+		Mat modifiedMat = new Mat();
+
+		// Convert image to gray scale
+		Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
+
+		// Apply threshold to image
+		modifiedMat = ThresholdUtils.applyAdaptiveThreshold(
 				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
 
 		return modifiedMat;
