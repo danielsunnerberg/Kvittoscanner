@@ -15,7 +15,7 @@ public class ReceiptExtractor {
 
     // @todo Set these constants based on the video itself?
     private final static int NUM_SPLITTED_FRAMES = 30;
-    private final static int NUM_IMAGE_PIECES = 2;
+    private final static int NUM_IMAGE_PIECES = 24;
 
     private static final Logger logger = LogManager.getLogger(ReceiptExtractor.class);
 
