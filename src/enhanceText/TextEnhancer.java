@@ -63,7 +63,7 @@ public class TextEnhancer {
 
 		if (thresholdType != THRESH_NONE) {
 			// Apply threshold to image
-			modifiedMat = ThresholdUtils.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
+			modifiedMat = ThresholdApplier.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
 		}
 
 		return modifiedMat;
@@ -106,7 +106,7 @@ public class TextEnhancer {
 		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
 
 		// Apply threshold to image
-		modifiedMat = ThresholdUtils.applyAdaptiveThreshold (
+		modifiedMat = ThresholdApplier.applyAdaptiveThreshold (
 				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
 
 		return modifiedMat;
@@ -145,7 +145,7 @@ public class TextEnhancer {
 		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
 
 		// Apply ranged threshold to image
-		modifiedMat = ThresholdUtils.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
+		modifiedMat = ThresholdApplier.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
 
 		return modifiedMat;
 	}
@@ -197,7 +197,7 @@ public class TextEnhancer {
 
 		if (thresholdType != THRESH_NONE) {
 			// Apply threshold to image
-			modifiedMat = ThresholdUtils.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
+			modifiedMat = ThresholdApplier.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
 		}
 
 		return modifiedMat;
@@ -237,7 +237,7 @@ public class TextEnhancer {
 		Imgproc.medianBlur(modifiedMat, modifiedMat, kernelSize);
 
 		// Apply threshold to image
-		modifiedMat = ThresholdUtils.applyAdaptiveThreshold (
+		modifiedMat = ThresholdApplier.applyAdaptiveThreshold (
 				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
 
 		return modifiedMat;
@@ -273,7 +273,7 @@ public class TextEnhancer {
 		Imgproc.medianBlur(modifiedMat, modifiedMat, kernelSize);
 
 		// Apply ranged threshold to image
-		modifiedMat = ThresholdUtils.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
+		modifiedMat = ThresholdApplier.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
 
 		return modifiedMat;
 	}
@@ -321,7 +321,7 @@ public class TextEnhancer {
 
 		if (thresholdType != THRESH_NONE) {
 			// Apply threshold to image
-			modifiedMat = ThresholdUtils.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
+			modifiedMat = ThresholdApplier.applyThreshold(modifiedMat, threshold, maxval, thresholdType, otsu);
 		}
 
 		return modifiedMat;
@@ -357,7 +357,7 @@ public class TextEnhancer {
 		Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
 
 		// Apply threshold to image
-		modifiedMat = ThresholdUtils.applyAdaptiveThreshold(
+		modifiedMat = ThresholdApplier.applyAdaptiveThreshold(
 				modifiedMat, maxval, adaptiveMethod, thresholdType, blockSize, c);
 
 		return modifiedMat;
@@ -389,7 +389,7 @@ public class TextEnhancer {
 		}
 
 		// Apply ranged threshold to image
-		modifiedMat = ThresholdUtils.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
+		modifiedMat = ThresholdApplier.applyRangedThreshold(mat, low_b, low_g, low_r, high_b, high_g, high_r);
 
 		return modifiedMat;
 	}

@@ -10,7 +10,7 @@ import org.opencv.imgproc.Imgproc;
  *
  * Created by gustavbergstrom on 2017-03-08.
  */
-public class ThresholdUtils {
+public class ThresholdApplier {
 
 	/**
 	 * Applies a threshold to a matrix that is in gray scale.
