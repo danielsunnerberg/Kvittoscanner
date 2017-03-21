@@ -9,7 +9,7 @@ import org.opencv.imgproc.Imgproc;
  *
  * Created by gustavbergstrom on 2017-02-21.
  */
-public class TextEnhancer {
+public class ImageEnhancer {
 
 	public static int THRESH_NONE = Integer.MAX_VALUE;
 
@@ -52,7 +52,7 @@ public class TextEnhancer {
 			// Convert image to gray scale
 			Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
 		} else if (otsu) {
-			System.out.println("[TextEnhancer] (gaussianBlurAndThreshold): grayScale must be true if otsu is true");
+			System.out.println("[ImageEnhancer] (gaussianBlurAndThreshold): grayScale must be true if otsu is true");
 			return mat;
 		} else {
 			modifiedMat = mat;
@@ -186,7 +186,7 @@ public class TextEnhancer {
 			// Convert image to gray scale
 			Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
 		} else if (otsu) {
-			System.out.println("[TextEnhancer] (medianBlurAndThreshold): grayScale must be true if otsu is true");
+			System.out.println("[ImageEnhancer] (medianBlurAndThreshold): grayScale must be true if otsu is true");
 			return mat;
 		} else {
 			modifiedMat = mat;
@@ -313,7 +313,7 @@ public class TextEnhancer {
 			// Convert image to gray scale
 			Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
 		} else if (otsu) {
-			System.out.println("[TextEnhancer] (onlyThreshold): grayScale must be true if otsu is true");
+			System.out.println("[ImageEnhancer] (onlyThreshold): grayScale must be true if otsu is true");
 			return mat;
 		} else {
 			modifiedMat = mat;
