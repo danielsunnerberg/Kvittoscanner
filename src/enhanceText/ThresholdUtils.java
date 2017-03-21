@@ -75,7 +75,7 @@ public class ThresholdUtils {
 	}
 
 	/**
-	 * Applies a ranged threshold to a matrix that is in RGB. The pixels that are in the ranges are set to white.
+	 * Applies a ranged threshold to a matrix that is in BGR. The pixels that are in the ranges are set to white.
 	 * All other pixels are set to black.
 	 *
 	 * @param mat The matrix to apply the threshold to.
