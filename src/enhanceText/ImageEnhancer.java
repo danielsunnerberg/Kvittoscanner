@@ -5,7 +5,8 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 /**
- * Class for trying to enhance text in an image
+ * Class containing methods for enhancing an image. The methods combine applying Gaussian blur, median blur and no blur
+ * with applying regular threshold, adaptive threshold and ranged threshold.
  *
  * Created by gustavbergstrom on 2017-02-21.
  */
@@ -14,7 +15,7 @@ public class ImageEnhancer {
 	public static int THRESH_NONE = Integer.MAX_VALUE;
 
 	/**
-	 * Enhance text using Gaussian blur and a threshold.
+	 * Enhance image using Gaussian blur and a threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
@@ -70,7 +71,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using Gaussian blur and an adaptive threshold.
+	 * Enhance image using Gaussian blur and an adaptive threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
@@ -113,7 +114,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using Gaussian blur and a ranged threshold.
+	 * Enhance image using Gaussian blur and a ranged threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
@@ -151,7 +152,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using median blur and a threshold.
+	 * Enhance image using median blur and a threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param kernelSize The kernel size to apply median blur with. Default is 3.
@@ -204,7 +205,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using median blur and an adaptive threshold.
+	 * Enhance image using median blur and an adaptive threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param kernelSize The kernel size to apply median blur with. Default is 3.
@@ -244,7 +245,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using median blur and a ranged threshold.
+	 * Enhance image using median blur and a ranged threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param kernelSize The kernel size to apply gaussian blur with. Default is 3.
@@ -279,7 +280,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using a threshold.
+	 * Enhance image using a threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param grayScale If true, the image is converted to gray scale before applying threshold. Must be true if otsu is true.
@@ -328,7 +329,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using an adaptive threshold.
+	 * Enhance image using an adaptive threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
@@ -364,7 +365,7 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance text using a ranged threshold.
+	 * Enhance image using a ranged threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
 	 * @param grayScale If true, the image is converted to gray scale before applying threshold.
