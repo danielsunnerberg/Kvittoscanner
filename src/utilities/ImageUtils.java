@@ -1,4 +1,4 @@
-package enhanceImage;
+package utilities;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -13,12 +13,21 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Utility class containing methods to resize, display and save images. Can also convert a Mat to an image.
+ *
  * Created by gustavbergstrom on 2017-02-21.
  */
 
-public class Utils {
+public class ImageUtils {
 
-	// Resize a Mat to fit the specified size
+	/**
+	 * Resize a Mat to fit the specified size.
+	 *
+	 * @param image The Mat to resize.
+	 * @param width The maximum width of the resized Mat.
+	 * @param height The maximum height of the resized Mat.
+	 * @return The resized Mat.
+	 */
 	public static Mat resize (Mat image, int width, int height) {
 
 		Mat newImage = new Mat();
@@ -41,7 +50,12 @@ public class Utils {
 		return newImage;
 	}
 
-	// Display an image on the screen
+	/**
+	 * Display an image in a JFrame.
+	 *
+	 * @param image The image to display.
+	 * @param name The name of the image. The name is shown on the JFrame.
+	 */
 	public static void displayImage (Image image, String name) {
 		ImageIcon icon = new ImageIcon(image);
 		JFrame frame = new JFrame();
@@ -55,13 +69,22 @@ public class Utils {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
-	// Display a Mat on the screen
+	/**
+	 * Display a Mat in a JFrame.
+	 *
+	 * @param mat The mat to display.
+	 * @param name The name of the Mat. The name is shown on the JFrame.
+	 */
 	public static void displayMat (Mat mat, String name) {
 		Image image = matToImage(mat);
 		displayImage(image, name);
 	}
 
-	// Convert a Mat to a BufferedImage
+	/**
+	 * Convert a Mat to a BufferedImage.
+	 * @param mat The Mat to convert.
+	 * @return A BufferedImage.
+	 */
 	public static BufferedImage matToImage(Mat mat){
 		int type = BufferedImage.TYPE_BYTE_GRAY;
 		if (mat.channels() > 1) {
@@ -76,9 +99,14 @@ public class Utils {
 		return image;
 	}
 
-	// Save an image to disk
-	public static void saveImage (BufferedImage image, String methodName, String dirName, String name) {
-		String path = "/Users/gustavbergstrom/Documents/Kandidat/Output/" + methodName + "/" + dirName;
+	/**
+	 * Save an image to disk.
+	 *
+	 * @param image The image to save.
+	 * @param path The path where the image will be saved.
+	 * @param name The name of the image.
+	 */
+	public static void saveImage (BufferedImage image, String path, String name) {
 		File dir = new File(path);
 		if (!dir.exists()) {
 			dir.mkdirs();
@@ -93,9 +121,15 @@ public class Utils {
 		}
 	}
 
-	// Save a mat to disk by converting it to an image
-	public static void saveMat (Mat mat, String methodName, String dirName, String name) {
+	/**
+	 * Save a Mat to disk by converting it to an image.
+	 *
+	 * @param mat The Mat to save.
+	 * @param path The path where the image will be saved.
+	 * @param name The name of the Mat.
+	 */
+	public static void saveMat (Mat mat, String path, String name) {
 		BufferedImage image = matToImage(mat);
-		saveImage(image, methodName, dirName, name);
+		saveImage(image, path, name);
 	}
 }
