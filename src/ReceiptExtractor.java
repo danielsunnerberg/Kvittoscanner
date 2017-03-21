@@ -6,6 +6,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 import utilities.BlurDetector;
 import utilities.EdgeDetector;
+import utilities.ReceiptAligner;
 import utilities.VideoSplitter;
 
 import java.util.ArrayList;
@@ -19,7 +20,8 @@ public class ReceiptExtractor {
 
     private static final Logger logger = LogManager.getLogger(ReceiptExtractor.class);
 
-    private EdgeDetector edgeDetector = new EdgeDetector();
+    private final EdgeDetector edgeDetector = new EdgeDetector();
+    private final ReceiptAligner receiptAligner = new ReceiptAligner();
 
     /**
      * Extracts a receipt from a video stream by finding the best pieces of
@@ -46,7 +48,7 @@ public class ReceiptExtractor {
         rotateFrames(frames);
 
         // Extract the receipt from the frames
-        int n = 0;
+        Mat reference = null;
         List<Mat> receipts = new ArrayList<>();
         for (Mat frame : frames) {
             Mat receipt = edgeDetector.extractBiggestObject(frame, detectGlare);
@@ -55,8 +57,15 @@ public class ReceiptExtractor {
                 continue;
             }
 
+            if (reference == null) {
+                reference = receipt; // @todo We may want to select the reference in another way
+            }
+
+            // Align images to fit the reference
+            Mat aligned = receiptAligner.align(reference, receipt);
+
             logger.info("Extracted receipt from frame successfully");
-            receipts.add(receipt);
+            receipts.add(aligned);
         }
 
         logger.info("Extracted {} receipts from {} frames", receipts.size(), frames.size());
