@@ -188,9 +188,9 @@ public class EnhanceImageDemo implements ActionListener {
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
 										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
-										sigmaSlider.getValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), noThresholdGrayScaleCheckBox.isSelected(),
-										ImageEnhancer.THRESH_NONE, otsuCheckBox.isSelected());
+										sigmaSlider.getValue(), 0, 0,
+										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
+										false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
@@ -220,9 +220,9 @@ public class EnhanceImageDemo implements ActionListener {
 								break;
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
-										kernelSizeSlider.getValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), noThresholdGrayScaleCheckBox.isSelected(),
-										ImageEnhancer.THRESH_NONE, otsuCheckBox.isSelected());
+										kernelSizeSlider.getValue(), 0, 0,
+										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
+										false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
@@ -251,8 +251,7 @@ public class EnhanceImageDemo implements ActionListener {
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
 										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
-										thresholdSlider.getValue(), thresholdMaxvalSlider.getValue(),
-										otsuCheckBox.isSelected());
+										0, 0, false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
