@@ -166,7 +166,7 @@ public class EnhanceImageDemo implements ActionListener {
 								Mat enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
 										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
 										sigmaSlider.getValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), true,
+										thresholdMaxvalSlider.getValue(), thresholdGrayScaleCheckBox.isSelected(),
 										thresholdTypeSlider.getValue(), otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
@@ -201,8 +201,8 @@ public class EnhanceImageDemo implements ActionListener {
 							case THRESHOLDSTRING:
 								Mat enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
 										kernelSizeSlider.getValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), true, thresholdTypeSlider.getValue(),
-										otsuCheckBox.isSelected());
+										thresholdMaxvalSlider.getValue(), thresholdGrayScaleCheckBox.isSelected(),
+										thresholdTypeSlider.getValue(), otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
@@ -231,9 +231,10 @@ public class EnhanceImageDemo implements ActionListener {
 					case NOBLURSTRING:
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
-								Mat enhancedMat = ImageEnhancer.onlyThreshold(originalMat, true,
-										thresholdTypeSlider.getValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), otsuCheckBox.isSelected());
+								Mat enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
+										thresholdGrayScaleCheckBox.isSelected(), thresholdTypeSlider.getValue(),
+										thresholdSlider.getValue(), thresholdMaxvalSlider.getValue(),
+										otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
