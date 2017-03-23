@@ -63,6 +63,8 @@ public class EnhanceImageDemo implements ActionListener {
 	private JSlider redMinSlider;
 	private JSlider redMaxSlider;
 
+	private JCheckBox noThresholdGrayScaleCheckBox;
+
 	public EnhanceImageDemo (String imageName) {
 		String file = IMAGEPATH + imageName;
 		originalMat = Imgcodecs.imread(file);
@@ -152,6 +154,7 @@ public class EnhanceImageDemo implements ActionListener {
 			case NOTHRESHOLDSTRING:
 				currentThreshold = NOTHRESHOLDSTRING;
 				thresholdParametersPanel.removeAll();
+				thresholdParametersPanel.add(new NoThresholdParametersPanel());
 				frame.validate();
 				break;
 			case SHOWIMAGESTRING:
@@ -186,8 +189,8 @@ public class EnhanceImageDemo implements ActionListener {
 								enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
 										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
 										sigmaSlider.getValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), true, ImageEnhancer.THRESH_NONE,
-										otsuCheckBox.isSelected());
+										thresholdMaxvalSlider.getValue(), noThresholdGrayScaleCheckBox.isSelected(),
+										ImageEnhancer.THRESH_NONE, otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
@@ -218,8 +221,8 @@ public class EnhanceImageDemo implements ActionListener {
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
 										kernelSizeSlider.getValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), true, ImageEnhancer.THRESH_NONE,
-										otsuCheckBox.isSelected());
+										thresholdMaxvalSlider.getValue(), noThresholdGrayScaleCheckBox.isSelected(),
+										ImageEnhancer.THRESH_NONE, otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
@@ -246,9 +249,10 @@ public class EnhanceImageDemo implements ActionListener {
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
-								enhancedMat = ImageEnhancer.onlyThreshold(originalMat, true,
-										ImageEnhancer.THRESH_NONE, thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), otsuCheckBox.isSelected());
+								enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
+										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
+										thresholdSlider.getValue(), thresholdMaxvalSlider.getValue(),
+										otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
@@ -575,6 +579,14 @@ public class EnhanceImageDemo implements ActionListener {
 			redMaxSlider.setSnapToTicks(true);
 			redMaxPanel.add(redMaxSlider);
 			this.add(redMaxPanel);
+		}
+	}
+
+	private class NoThresholdParametersPanel extends JPanel {
+		private NoThresholdParametersPanel () {
+			noThresholdGrayScaleCheckBox = new JCheckBox("Gray scale");
+			noThresholdGrayScaleCheckBox.setSelected(true);
+			this.add(noThresholdGrayScaleCheckBox);
 		}
 	}
 }
