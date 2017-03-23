@@ -49,6 +49,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private JSlider thresholdMaxvalSlider;
 	private JSlider thresholdTypeSlider;
 	private JCheckBox otsuCheckBox;
+	private JCheckBox thresholdGrayScaleCheckBox;
 
 	private JSlider adaptiveThresholdMaxvalSlider;
 	private JSlider adaptiveMethodSlider;
@@ -415,7 +416,7 @@ public class EnhanceImageDemo implements ActionListener {
 			maxvalPanel.add(thresholdMaxvalSlider);
 			this.add(maxvalPanel);
 
-			JPanel thresholdTypeAndOtsuPanel = new JPanel();
+			JPanel thresholdTypeAndCheckBoxPanel = new JPanel();
 			thresholdTypeSlider = new JSlider(JSlider.VERTICAL, 0, 4, 0);
 			thresholdTypeSlider.setMajorTickSpacing(1);
 			thresholdTypeSlider.setPaintTicks(true);
@@ -428,12 +429,15 @@ public class EnhanceImageDemo implements ActionListener {
 			labelTable.put(4, new JLabel("To zero inverse"));
 			thresholdTypeSlider.setLabelTable(labelTable);
 			thresholdTypeSlider.setPaintLabels(true);
-			thresholdTypeAndOtsuPanel.add(thresholdTypeSlider);
+			thresholdTypeAndCheckBoxPanel.add(thresholdTypeSlider);
 
 			otsuCheckBox = new JCheckBox("OTSU");
 			otsuCheckBox.setSelected(true);
-			thresholdTypeAndOtsuPanel.add(otsuCheckBox);
-			this.add(thresholdTypeAndOtsuPanel);
+			thresholdTypeAndCheckBoxPanel.add(otsuCheckBox);
+			thresholdGrayScaleCheckBox = new JCheckBox("Gray scale");
+			thresholdGrayScaleCheckBox.setSelected(true);
+			thresholdTypeAndCheckBoxPanel.add(thresholdGrayScaleCheckBox);
+			this.add(thresholdTypeAndCheckBoxPanel);
 		}
 	}
 
