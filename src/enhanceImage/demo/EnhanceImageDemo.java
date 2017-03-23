@@ -24,6 +24,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private final String THRESHOLDSTRING = "Threshold";
 	private final String ADAPTIVETHRESHOLDSTRING = "Adaptive threshold";
 	private final String RANGEDTHRESHOLDSTRING = "Ranged threshold";
+	private final String NOTHRESHOLDSTRING = "No threshold";
 	private final String SHOWIMAGESTRING = "Show image";
 
 	private final int IMAGESIZE = 500;
@@ -148,6 +149,11 @@ public class EnhanceImageDemo implements ActionListener {
 				thresholdParametersPanel.add(new RangedThresholdParametersPanel());
 				frame.validate();
 				break;
+			case NOTHRESHOLDSTRING:
+				currentThreshold = NOTHRESHOLDSTRING;
+				thresholdParametersPanel.removeAll();
+				frame.validate();
+				break;
 			case SHOWIMAGESTRING:
 				switch (currentBlur) {
 					case GAUSSIANBLURSTRING:
@@ -176,6 +182,14 @@ public class EnhanceImageDemo implements ActionListener {
 										redMaxSlider.getValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
+							case NOTHRESHOLDSTRING:
+								enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
+										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
+										sigmaSlider.getValue(), thresholdSlider.getValue(),
+										thresholdMaxvalSlider.getValue(), true, ImageEnhancer.THRESH_NONE,
+										otsuCheckBox.isSelected());
+								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
+								break;
 						}
 						break;
 					case MEDIANBLURSTRING:
@@ -201,6 +215,13 @@ public class EnhanceImageDemo implements ActionListener {
 										greenMaxSlider.getValue(), redMaxSlider.getValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
+							case NOTHRESHOLDSTRING:
+								enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
+										kernelSizeSlider.getValue(), thresholdSlider.getValue(),
+										thresholdMaxvalSlider.getValue(), true, ImageEnhancer.THRESH_NONE,
+										otsuCheckBox.isSelected());
+								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
+								break;
 						}
 						break;
 					case NOBLURSTRING:
@@ -222,6 +243,12 @@ public class EnhanceImageDemo implements ActionListener {
 								enhancedMat = ImageEnhancer.onlyRangedThreshold(originalMat, false,
 										blueMinSlider.getValue(), greenMinSlider.getValue(), redMinSlider.getValue(),
 										blueMaxSlider.getValue(), greenMaxSlider.getValue(), redMaxSlider.getValue());
+								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
+								break;
+							case NOTHRESHOLDSTRING:
+								enhancedMat = ImageEnhancer.onlyThreshold(originalMat, true,
+										ImageEnhancer.THRESH_NONE, thresholdSlider.getValue(),
+										thresholdMaxvalSlider.getValue(), otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
@@ -264,6 +291,8 @@ public class EnhanceImageDemo implements ActionListener {
 
 	private class ThresholdPanel extends JPanel {
 		private ThresholdPanel (ActionListener actionListener) {
+			this.setLayout(new GridLayout(2,2));
+
 			JRadioButton thresholdButton = new JRadioButton(THRESHOLDSTRING);
 			thresholdButton.setActionCommand(THRESHOLDSTRING);
 			thresholdButton.addActionListener(actionListener);
@@ -273,13 +302,18 @@ public class EnhanceImageDemo implements ActionListener {
 			JRadioButton rangedThresholdButton = new JRadioButton(RANGEDTHRESHOLDSTRING);
 			rangedThresholdButton.setActionCommand(RANGEDTHRESHOLDSTRING);
 			rangedThresholdButton.addActionListener(actionListener);
+			JRadioButton noThresholdButton = new JRadioButton(NOTHRESHOLDSTRING);
+			noThresholdButton.setActionCommand(NOTHRESHOLDSTRING);
+			noThresholdButton.addActionListener(actionListener);
 			ButtonGroup thresholdButtons = new ButtonGroup();
 			thresholdButtons.add(thresholdButton);
 			thresholdButtons.add(adaptiveThreshButton);
 			thresholdButtons.add(rangedThresholdButton);
+			thresholdButtons.add(noThresholdButton);
 			this.add(thresholdButton);
 			this.add(adaptiveThreshButton);
 			this.add(rangedThresholdButton);
+			this.add(noThresholdButton);
 			thresholdButton.setSelected(true);
 			currentThreshold = THRESHOLDSTRING;
 		}
