@@ -6,10 +6,32 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.*;
 
+import static org.opencv.core.CvType.CV_64F;
+
 /**
  * Created by jacobth on 2017-02-01.
  */
 public class BlurDetector {
+
+    /**
+     * Calculates the contrast using the Tenengrad-algorithm.
+     *
+     * @param source source which the algorithm should be run upon
+     * @return contrast value
+     */
+    private static double tenengrad(Mat source) {
+        Mat gx = new Mat();
+        Mat gy = new Mat();
+
+        final int KERNEL_SIZE = 3;
+        Imgproc.Sobel(source, gx, CV_64F, 1, 0, KERNEL_SIZE, 1, 5);
+        Imgproc.Sobel(source, gy, CV_64F, 0, 1, KERNEL_SIZE, 1, 5);
+
+        Mat FM = new Mat();
+        Core.add(gx.mul(gx), gy.mul(gy), FM);
+
+        return Core.mean(FM).val[0];
+    }
 
     /**
      * Calculate the variance for a specific image to determine how blurry it is.
@@ -17,24 +39,14 @@ public class BlurDetector {
      * @param imageMat the image in for of a mat
      * @return the variance of the image
      */
-    public static double getVariance(Mat imageMat) {
+    private static double getVariance(Mat imageMat) {
 
         Mat matOut = new Mat();
         Mat matGray = new Mat();
 
         //Convert the mat to grey scale.
         Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.Laplacian(matGray, matOut, 3);
-
-        MatOfDouble median = new MatOfDouble();
-        MatOfDouble std = new MatOfDouble();
-
-        Core.meanStdDev(matOut, median, std);
-
-        //The variance is the median^2
-        double var = Math.pow(std.get(0, 0)[0], 2);
-
-        return var;
+        return tenengrad(matGray);
     }
 
     /**
