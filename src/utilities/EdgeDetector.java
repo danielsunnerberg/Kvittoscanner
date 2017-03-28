@@ -29,34 +29,45 @@ public class EdgeDetector {
 
     private final ContrastDetector contrastDetector;
     private final PolygonReducer polygonReducer;
+    private final BoxValidation boxValidation;
 
     public EdgeDetector() {
         contrastDetector = new ContrastDetector();
         polygonReducer = new PolygonReducer();
+        boxValidation = new BoxValidation();
     }
 
     // @todo Mask if we have all frames?
 
     private MatOfPoint2f reducePolygon(MatOfPoint2f polygon) {
-        double epsilonFactor = 0.50;
+
+        double percentage = 0.05;
+
+        double epsilon = percentage * arcLength(polygon, true);
 
         MatOfPoint2f approximation = null;
+        MatOfPoint2f lastPolygon = null;
         for (int reduceCounter = 0; reduceCounter < 30; reduceCounter++) {
+            if (lastPolygon == null){
+                lastPolygon = polygon;
+            }
             // Simplify the found polygon to contain only the 4 corners.
             // This is a bit tricky, as we cannot directly specify how many points we WANT;
             // so we have to try with a few epsilon-values.
             approximation = new MatOfPoint2f();
-            Imgproc.approxPolyDP(polygon, approximation, polygon.total() * epsilonFactor, true);
+            //Imgproc.approxPolyDP(polygon, approximation, polygon.total() * epsilonFactor, true);
+            Imgproc.approxPolyDP(lastPolygon, approximation, epsilon, true);
 
             long points = approximation.total();
             if (points == NUM_CORNERS) {
                 logger.info("Reduced bounding polygon to 4 points in {} attempts", reduceCounter + 1);
                 return approximation;
             } else if (points > NUM_CORNERS) {
-                epsilonFactor += 0.05;
+                epsilon += 0.01;
             } else {
-                epsilonFactor -= 0.05;
+                epsilon -= 0.01;
             }
+            lastPolygon = approximation;
         }
 
         return approximation;
@@ -82,7 +93,9 @@ public class EdgeDetector {
             logger.info("Too few corners in reduction, discarding");
         }
 
-        // @todo Validate angles here, points == 4
+        if (boxValidation.validateCornerAngles(approximation)){
+            return approximation;
+        }
 
         return null;
     }

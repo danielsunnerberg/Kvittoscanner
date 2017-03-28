@@ -2,6 +2,8 @@ package utilities;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
 
@@ -10,6 +12,7 @@ import java.util.List;
 
 public class VideoSplitter {
 
+    private static double sizeLimit = 1000;
     /**
      * Loads the video at the provided location and extracts a specified number of evenly distributed
      * frames from it.
@@ -54,7 +57,7 @@ public class VideoSplitter {
                 // Empty frame; probably end of file
                 break;
             }
-
+            resizeImage(mat);
             frames.add(mat);
 
             // To get an uniform distribution, we must discard frames
@@ -67,6 +70,18 @@ public class VideoSplitter {
 
         capture.release();
         return frames;
+    }
+
+    private static void resizeImage(Mat mat){
+        double factor = 1;
+        if (mat.height() > mat.width() && mat.height() > sizeLimit){
+            factor = mat.height() / sizeLimit;
+        } else if(mat.width() > mat.height() && mat.width() > sizeLimit){
+            factor = mat.width() / sizeLimit;
+        }
+        Size size = new Size(mat.width() / factor, mat.height() / factor);
+
+        Imgproc.resize(mat, mat, size, 0, 0, Imgproc.INTER_AREA);
     }
 
 
