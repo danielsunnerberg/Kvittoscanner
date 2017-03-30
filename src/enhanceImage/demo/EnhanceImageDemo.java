@@ -1,6 +1,7 @@
 package enhanceImage.demo;
 
 import enhanceImage.ImageEnhancer;
+import enhanceImage.demo.components.BlurPanel;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import utilities.ImageUtils;
@@ -18,9 +19,9 @@ public class EnhanceImageDemo implements ActionListener {
 
 	private final String IMAGEPATH = "src/test/resources/randomimages/";
 
-	private final String GAUSSIANBLURSTRING = "Gaussian blur";
-	private final String MEDIANBLURSTRING = "Median blur";
-	private final String NOBLURSTRING = "No blur";
+	public static final String GAUSSIANBLURSTRING = "Gaussian blur";
+	public static final String MEDIANBLURSTRING = "Median blur";
+	public static final String NOBLURSTRING = "No blur";
 	private final String THRESHOLDSTRING = "Threshold";
 	private final String ADAPTIVETHRESHOLDSTRING = "Adaptive threshold";
 	private final String RANGEDTHRESHOLDSTRING = "Ranged threshold";
@@ -88,6 +89,7 @@ public class EnhanceImageDemo implements ActionListener {
 		blurParametersPanel = new JPanel();
 		blurParametersPanel.add(new GaussianParametersPanel());
 		leftPanel.add(blurParametersPanel);
+		currentBlur = GAUSSIANBLURSTRING;
 
 		ThresholdPanel thresholdPanel = new ThresholdPanel(this);
 		leftPanel.add(thresholdPanel);
@@ -280,29 +282,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class BlurPanel extends JPanel {
-		private BlurPanel (ActionListener actionListener) {
-			JRadioButton gaussianButton = new JRadioButton(GAUSSIANBLURSTRING);
-			gaussianButton.setActionCommand(GAUSSIANBLURSTRING);
-			gaussianButton.addActionListener(actionListener);
-			JRadioButton medianButton = new JRadioButton(MEDIANBLURSTRING);
-			medianButton.setActionCommand(MEDIANBLURSTRING);
-			medianButton.addActionListener(actionListener);
-			JRadioButton noBlurButton = new JRadioButton(NOBLURSTRING);
-			noBlurButton.setActionCommand(NOBLURSTRING);
-			noBlurButton.addActionListener(actionListener);
-			ButtonGroup blurButtons = new ButtonGroup();
-			blurButtons.add(gaussianButton);
-			blurButtons.add(medianButton);
-			blurButtons.add(noBlurButton);
-			this.add(gaussianButton);
-			this.add(medianButton);
-			this.add(noBlurButton);
-			gaussianButton.setSelected(true);
-			currentBlur = GAUSSIANBLURSTRING;
-		}
 	}
 
 	private class ThresholdPanel extends JPanel {
