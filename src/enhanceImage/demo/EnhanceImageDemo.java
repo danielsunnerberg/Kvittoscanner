@@ -104,25 +104,26 @@ public class EnhanceImageDemo implements ActionListener {
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 	}
 
+	private void updateBlur (String blur, JPanel parametersPanel) {
+		currentBlur = blur;
+		blurParametersPanel.removeAll();
+		if (parametersPanel != null) {
+			blurParametersPanel.add(parametersPanel);
+		}
+		frame.validate();
+	}
+
 	public void actionPerformed(ActionEvent e) {
 
 		switch (e.getActionCommand()) {
 			case GAUSSIANBLURSTRING:
-				currentBlur = GAUSSIANBLURSTRING;
-				blurParametersPanel.removeAll();
-				blurParametersPanel.add(gaussianParametersPanel);
-				frame.validate();
+				updateBlur(GAUSSIANBLURSTRING, gaussianParametersPanel);
 				break;
 			case MEDIANBLURSTRING:
-				currentBlur = MEDIANBLURSTRING;
-				blurParametersPanel.removeAll();
-				blurParametersPanel.add(medianParametersPanel);
-				frame.validate();
+				updateBlur(MEDIANBLURSTRING, medianParametersPanel);
 				break;
 			case NOBLURSTRING:
-				currentBlur = NOBLURSTRING;
-				blurParametersPanel.removeAll();
-				frame.validate();
+				updateBlur(NOBLURSTRING, null);
 				break;
 			case THRESHOLDSTRING:
 				currentThreshold = THRESHOLDSTRING;
