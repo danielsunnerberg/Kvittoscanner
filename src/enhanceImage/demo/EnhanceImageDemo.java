@@ -45,13 +45,7 @@ public class EnhanceImageDemo implements ActionListener {
 
 	private RegularThresholdParametersPanel regularThresholdParametersPanel;
 	private AdaptiveThresholdParametersPanel adaptiveThresholdParametersPanel;
-
-	private JSlider blueMinSlider;
-	private JSlider blueMaxSlider;
-	private JSlider greenMinSlider;
-	private JSlider greenMaxSlider;
-	private JSlider redMinSlider;
-	private JSlider redMaxSlider;
+	private RangedThresholdParametersPanel rangedThresholdParametersPanel;
 
 	private JCheckBox noThresholdGrayScaleCheckBox;
 
@@ -86,6 +80,7 @@ public class EnhanceImageDemo implements ActionListener {
 		thresholdParametersPanel = new JPanel();
 		regularThresholdParametersPanel = new RegularThresholdParametersPanel(this);
 		adaptiveThresholdParametersPanel = new AdaptiveThresholdParametersPanel();
+		rangedThresholdParametersPanel = new RangedThresholdParametersPanel();
 		thresholdParametersPanel.add(regularThresholdParametersPanel);
 		leftPanel.add(thresholdParametersPanel);
 		currentThreshold = THRESHOLDSTRING;
@@ -144,7 +139,7 @@ public class EnhanceImageDemo implements ActionListener {
 			case RANGEDTHRESHOLDSTRING:
 				currentThreshold = RANGEDTHRESHOLDSTRING;
 				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(new RangedThresholdParametersPanel());
+				thresholdParametersPanel.add(rangedThresholdParametersPanel);
 				frame.validate();
 				break;
 			case NOTHRESHOLDSTRING:
@@ -195,9 +190,13 @@ public class EnhanceImageDemo implements ActionListener {
 								enhancedMat = ImageEnhancer.gaussianBlurAndRangedThreshold(originalMat, false,
 										gaussianParametersPanel.getKernelWidthSliderValue(),
 										gaussianParametersPanel.getKernelHeightSliderValue(),
-										gaussianParametersPanel.getSigmaSliderValue(), blueMinSlider.getValue(),
-										greenMinSlider.getValue(), redMinSlider.getValue(), blueMaxSlider.getValue(),
-										greenMaxSlider.getValue(), redMaxSlider.getValue());
+										gaussianParametersPanel.getSigmaSliderValue(),
+										rangedThresholdParametersPanel.getBlueMinSliderValue(),
+										rangedThresholdParametersPanel.getGreenMinSliderValue(),
+										rangedThresholdParametersPanel.getRedMinSliderValue(),
+										rangedThresholdParametersPanel.getBlueMaxSliderValue(),
+										rangedThresholdParametersPanel.getGreenMaxSliderValue(),
+										rangedThresholdParametersPanel.getRedMaxSliderValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
@@ -235,9 +234,13 @@ public class EnhanceImageDemo implements ActionListener {
 								break;
 							case RANGEDTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndRangedThreshold(originalMat, false,
-										medianParametersPanel.getKernelSizeSliderValue(), blueMinSlider.getValue(),
-										greenMinSlider.getValue(), redMinSlider.getValue(), blueMaxSlider.getValue(),
-										greenMaxSlider.getValue(), redMaxSlider.getValue());
+										medianParametersPanel.getKernelSizeSliderValue(),
+										rangedThresholdParametersPanel.getBlueMinSliderValue(),
+										rangedThresholdParametersPanel.getGreenMinSliderValue(),
+										rangedThresholdParametersPanel.getRedMinSliderValue(),
+										rangedThresholdParametersPanel.getBlueMaxSliderValue(),
+										rangedThresholdParametersPanel.getGreenMaxSliderValue(),
+										rangedThresholdParametersPanel.getRedMaxSliderValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
@@ -271,8 +274,12 @@ public class EnhanceImageDemo implements ActionListener {
 								break;
 							case RANGEDTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.onlyRangedThreshold(originalMat, false,
-										blueMinSlider.getValue(), greenMinSlider.getValue(), redMinSlider.getValue(),
-										blueMaxSlider.getValue(), greenMaxSlider.getValue(), redMaxSlider.getValue());
+										rangedThresholdParametersPanel.getBlueMinSliderValue(),
+										rangedThresholdParametersPanel.getGreenMinSliderValue(),
+										rangedThresholdParametersPanel.getRedMinSliderValue(),
+										rangedThresholdParametersPanel.getBlueMaxSliderValue(),
+										rangedThresholdParametersPanel.getGreenMaxSliderValue(),
+										rangedThresholdParametersPanel.getRedMaxSliderValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
@@ -294,84 +301,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class RangedThresholdParametersPanel extends JPanel {
-		private RangedThresholdParametersPanel () {
-			this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-
-			JPanel blueMinPanel = new JPanel();
-			JLabel blueMinSliderLabel = new JLabel("Blue min");
-			blueMinPanel.add(blueMinSliderLabel);
-			blueMinSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 200);
-			blueMinSlider.setMajorTickSpacing(50);
-			blueMinSlider.setMinorTickSpacing(5);
-			blueMinSlider.setPaintTicks(true);
-			blueMinSlider.setPaintLabels(true);
-			blueMinSlider.setSnapToTicks(true);
-			blueMinPanel.add(blueMinSlider);
-			this.add(blueMinPanel);
-
-			JPanel blueMaxPanel = new JPanel();
-			JLabel blueMaxSliderLabel = new JLabel("Blue max");
-			blueMaxPanel.add(blueMaxSliderLabel);
-			blueMaxSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 255);
-			blueMaxSlider.setMajorTickSpacing(50);
-			blueMaxSlider.setMinorTickSpacing(5);
-			blueMaxSlider.setPaintTicks(true);
-			blueMaxSlider.setPaintLabels(true);
-			blueMaxSlider.setSnapToTicks(true);
-			blueMaxPanel.add(blueMaxSlider);
-			this.add(blueMaxPanel);
-
-			JPanel greenMinPanel = new JPanel();
-			JLabel greenMinSliderLabel = new JLabel("Green min");
-			greenMinPanel.add(greenMinSliderLabel);
-			greenMinSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 200);
-			greenMinSlider.setMajorTickSpacing(50);
-			greenMinSlider.setMinorTickSpacing(5);
-			greenMinSlider.setPaintTicks(true);
-			greenMinSlider.setPaintLabels(true);
-			greenMinSlider.setSnapToTicks(true);
-			greenMinPanel.add(greenMinSlider);
-			this.add(greenMinPanel);
-
-			JPanel greenMaxPanel = new JPanel();
-			JLabel greenMaxSliderLabel = new JLabel("Green max");
-			greenMaxPanel.add(greenMaxSliderLabel);
-			greenMaxSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 255);
-			greenMaxSlider.setMajorTickSpacing(50);
-			greenMaxSlider.setMinorTickSpacing(5);
-			greenMaxSlider.setPaintTicks(true);
-			greenMaxSlider.setPaintLabels(true);
-			greenMaxSlider.setSnapToTicks(true);
-			greenMaxPanel.add(greenMaxSlider);
-			this.add(greenMaxPanel);
-
-			JPanel redMinPanel = new JPanel();
-			JLabel redMinSliderLabel = new JLabel("Red min");
-			redMinPanel.add(redMinSliderLabel);
-			redMinSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 200);
-			redMinSlider.setMajorTickSpacing(50);
-			redMinSlider.setMinorTickSpacing(5);
-			redMinSlider.setPaintTicks(true);
-			redMinSlider.setPaintLabels(true);
-			redMinSlider.setSnapToTicks(true);
-			redMinPanel.add(redMinSlider);
-			this.add(redMinPanel);
-
-			JPanel redMaxPanel = new JPanel();
-			JLabel redMaxSliderLabel = new JLabel("Red max");
-			redMaxPanel.add(redMaxSliderLabel);
-			redMaxSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 255);
-			redMaxSlider.setMajorTickSpacing(50);
-			redMaxSlider.setMinorTickSpacing(5);
-			redMaxSlider.setPaintTicks(true);
-			redMaxSlider.setPaintLabels(true);
-			redMaxSlider.setSnapToTicks(true);
-			redMaxPanel.add(redMaxSlider);
-			this.add(redMaxPanel);
-		}
 	}
 
 	private class NoThresholdParametersPanel extends JPanel {
