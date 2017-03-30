@@ -1,5 +1,7 @@
 package utilities;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -13,6 +15,9 @@ import java.util.List;
 public class VideoSplitter {
 
     private static double sizeLimit = 1000;
+
+    private static final Logger logger = LogManager.getLogger(VideoSplitter.class);
+
     /**
      * Loads the video at the provided location and extracts a specified number of evenly distributed
      * frames from it.
@@ -38,34 +43,26 @@ public class VideoSplitter {
      */
     public static List<Mat> getFrames(VideoCapture capture, int requiredFrames) {
         final double frameCount = capture.get(Videoio.CAP_PROP_FRAME_COUNT);
+        logger.info("Provided capture has {} frames", frameCount);
 
         int frameDelay = 0;
         if (requiredFrames > 0 && requiredFrames <= frameCount) {
             frameDelay = (int) Math.round((frameCount - requiredFrames) / requiredFrames);
+            logger.info("Frame delay is {}", frameDelay);
         }
 
         List<Mat> frames = new ArrayList<>();
-        while (capture.grab()) {
-            if (requiredFrames > 0 && frames.size() >= requiredFrames) {
-                break;
-            }
+        // To get an uniform distribution of frames, skip a set number of frames
+        // between each retrieve. We don't read the frames in between for
+        // performance reasons.
+        for (int index = 0; index < frameCount; index += frameDelay + 1) {
+            logger.info("Extracting frame {}", index);
+            capture.set(Videoio.CAP_PROP_POS_FRAMES, index);
+            Mat frame = new Mat();
+            capture.read(frame);
 
-            Mat mat = new Mat();
-            capture.retrieve(mat);
-
-            if (mat.empty()) {
-                // Empty frame; probably end of file
-                break;
-            }
-            resizeImage(mat);
-            frames.add(mat);
-
-            // To get an uniform distribution, we must discard frames
-            // before reading the next.
-            for (int delay = 0; delay < frameDelay; delay++) {
-                // Read and discard frames
-                capture.read(new Mat());
-            }
+            resizeImage(frame);
+            frames.add(frame);
         }
 
         capture.release();
@@ -83,6 +80,4 @@ public class VideoSplitter {
 
         Imgproc.resize(mat, mat, size, 0, 0, Imgproc.INTER_AREA);
     }
-
-
 }
