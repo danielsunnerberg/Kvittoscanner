@@ -113,6 +113,13 @@ public class EnhanceImageDemo implements ActionListener {
 		frame.validate();
 	}
 
+	private void updateThreshold (String threshold, JPanel parametersPanel) {
+		currentThreshold = threshold;
+		thresholdParametersPanel.removeAll();
+		thresholdParametersPanel.add(parametersPanel);
+		frame.validate();
+	}
+
 	public void actionPerformed(ActionEvent e) {
 
 		switch (e.getActionCommand()) {
@@ -126,38 +133,22 @@ public class EnhanceImageDemo implements ActionListener {
 				updateBlur(NOBLURSTRING, null);
 				break;
 			case THRESHOLDSTRING:
-				currentThreshold = THRESHOLDSTRING;
-				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(regularThresholdParametersPanel);
-				frame.validate();
+				updateThreshold(THRESHOLDSTRING, regularThresholdParametersPanel);
 				break;
 			case ADAPTIVETHRESHOLDSTRING:
-				currentThreshold = ADAPTIVETHRESHOLDSTRING;
-				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(adaptiveThresholdParametersPanel);
-				frame.validate();
+				updateThreshold(ADAPTIVETHRESHOLDSTRING, adaptiveThresholdParametersPanel);
 				break;
 			case RANGEDTHRESHOLDSTRING:
-				currentThreshold = RANGEDTHRESHOLDSTRING;
-				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(rangedThresholdParametersPanel);
-				frame.validate();
+				updateThreshold(RANGEDTHRESHOLDSTRING, rangedThresholdParametersPanel);
 				break;
 			case NOTHRESHOLDSTRING:
-				currentThreshold = NOTHRESHOLDSTRING;
-				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(noThresholdParametersPanel);
-				frame.validate();
+				updateThreshold(NOBLURSTRING, noThresholdParametersPanel);
 				break;
 			case OTSUSTRING:
-				if (regularThresholdParametersPanel.isOtsuCheckBoxSelected()) {
-					regularThresholdParametersPanel.setGrayScaleCheckBoxSelected(true);
-					regularThresholdParametersPanel.setGrayScaleCheckBoxEnabled(false);
-					regularThresholdParametersPanel.setThresholdSliderEnabled(false);
-				} else {
-					regularThresholdParametersPanel.setGrayScaleCheckBoxEnabled(true);
-					regularThresholdParametersPanel.setThresholdSliderEnabled(true);
-				}
+				boolean isOtsuCheckBoxSelected = regularThresholdParametersPanel.isOtsuCheckBoxSelected();
+				regularThresholdParametersPanel.setGrayScaleCheckBoxSelected(true);
+				regularThresholdParametersPanel.setGrayScaleCheckBoxEnabled(!isOtsuCheckBoxSelected);
+				regularThresholdParametersPanel.setThresholdSliderEnabled(!isOtsuCheckBoxSelected);
 				break;
 			case SHOWIMAGESTRING:
 				switch (currentBlur) {
