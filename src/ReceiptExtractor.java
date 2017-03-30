@@ -5,7 +5,7 @@ import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 import utilities.EdgeDetector;
 import utilities.ReceiptAligner;
-import utilities.ReceiptMerger;
+import receiptMergers.ReceiptMerger;
 import utilities.VideoSplitter;
 
 import java.util.ArrayList;

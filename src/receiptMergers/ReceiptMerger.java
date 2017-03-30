@@ -1,4 +1,4 @@
-package utilities;
+package receiptMergers;
 
 import blurDetectors.BlurDetector;
 import blurDetectors.TenengradBlurDetector;
@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+import utilities.EdgeDetector;
 
 import java.util.*;
 
@@ -15,6 +16,8 @@ import static org.opencv.core.CvType.CV_8UC3;
 public class ReceiptMerger {
 
     private static final Logger logger = LogManager.getLogger(EdgeDetector.class);
+
+    private static final int SECTION_PADDING = 8;
 
     private final SectionFinder sectionFinder;
     private final BlurDetector blurDetector;
@@ -27,7 +30,7 @@ public class ReceiptMerger {
 
     public ReceiptMerger(boolean debug) {
         this.debug = debug;
-        this.sectionFinder = new SectionFinder();
+        this.sectionFinder = new TextSectionFinder(SECTION_PADDING);
         this.blurDetector = new TenengradBlurDetector();
     }
 
@@ -47,7 +50,7 @@ public class ReceiptMerger {
         }
 
         logger.info("Using first extracted frame as section reference.");
-        List<SectionFinder.Section> sections = sectionFinder.findSections(frames.get(0));
+        List<Section> sections = sectionFinder.findSections(frames.get(0));
         logger.info("Found {} sections.", sections.size());
 
         for(Mat mat : frames) {
@@ -80,11 +83,11 @@ public class ReceiptMerger {
      * @param imageMat the mat from the image
      * @return a map containing utilities.MatPos and variance value for each subsection.
      */
-    private List<MatPos> getVarianceListRows(Mat imageMat, List<SectionFinder.Section> sections, int referenceIndex) {
+    private List<MatPos> getVarianceListRows(Mat imageMat, List<Section> sections, int referenceIndex) {
         List<MatPos> list = new LinkedList<>();
 
         int index = 0;
-        for (SectionFinder.Section section : sections) {
+        for (Section section : sections) {
             Mat rowMat = imageMat.rowRange(section.getRangeWithPadding());
 
             double var = blurDetector.getVariance(rowMat);
@@ -130,7 +133,7 @@ public class ReceiptMerger {
                 logger.info("Combine sections [{}, {}] (y-range: [{}, {}])", i, stop, yStart, yStop);
 
                 Mat source = frames.get(referenceIndex);
-                SectionFinder.Section section = new SectionFinder.Section(yStart, yStop, source);
+                Section section = new Section(yStart, yStop, SECTION_PADDING, source);
                 matPos.mat = source.rowRange(section.getRangeWithPadding());
 
                 for (int j = i + 1; j <= stop; j++) {
@@ -224,14 +227,14 @@ public class ReceiptMerger {
 
     static class MatPos implements Comparable<MatPos> {
 
-        private SectionFinder.Section section;
+        private Section section;
         private int referenceIndex;
         private Mat mat;
         private int x;
         private int y;
         private double var;
 
-        MatPos(Mat mat, int y, double var, int referenceIndex, SectionFinder.Section section) {
+        MatPos(Mat mat, int y, double var, int referenceIndex, Section section) {
             this.mat = mat;
             this.x = -1;
             this.y = y;

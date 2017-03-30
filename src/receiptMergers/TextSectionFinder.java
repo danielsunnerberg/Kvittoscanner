@@ -1,14 +1,18 @@
-package utilities;
+package receiptMergers;
 
 import org.opencv.core.Mat;
-import org.opencv.core.Range;
+import utilities.ContrastDetector;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.opencv.imgproc.Imgproc.*;
 
-public class SectionFinder {
+
+/**
+ * Finds mergeable sections by analyzing where the source has text.
+ */
+public class TextSectionFinder implements SectionFinder {
 
     /**
      * How "white" the average of the channels has to be to
@@ -20,7 +24,7 @@ public class SectionFinder {
      * How many pixels of padding required to be considered
      * a section.
      */
-    private static final int PADDING_STEPS = 8;
+    private final int padding;
 
     /**
      * How high a section must be to not be discarded.
@@ -29,17 +33,15 @@ public class SectionFinder {
 
     private static ContrastDetector contrastDetector;
 
-    SectionFinder() {
+    TextSectionFinder(final int padding) {
         contrastDetector = new ContrastDetector();
+        this.padding = padding;
     }
 
     /**
-     * Finds mergeable sections in the given source.
-     *
-     * @param source source to be analyzed
-     * @return found sections
+     * {@inheritDoc}
      */
-    List<Section> findSections(Mat source) {
+    public List<Section> findSections(Mat source) {
         Mat gray = new Mat();
         cvtColor(source, gray, COLOR_BGR2GRAY);
 
@@ -66,7 +68,7 @@ public class SectionFinder {
                     continue;
                 }
 
-                sections.add(new Section(start, y, source));
+                sections.add(new Section(start, y, padding, source));
 
                 // The section has now been added, re-start from the end of that section
                 start = null;
@@ -102,7 +104,7 @@ public class SectionFinder {
     }
 
     private boolean rowHasBottomPadding(int row, Mat source) {
-        for (int offset = 1; offset <= PADDING_STEPS; offset++) {
+        for (int offset = 1; offset <= padding; offset++) {
             int paddingRow = row + offset;
             if (paddingRow <= 0 || paddingRow >= source.height()) {
                 // Row is outside mat bounds
@@ -115,35 +117,6 @@ public class SectionFinder {
         }
 
         return true;
-    }
-
-    static class Section {
-        private final int start;
-        private final int stop;
-        private final int padding;
-        private final int sourceHeight;
-
-        Section(int start, int stop, Mat source) {
-            this.start = start;
-            this.stop = stop;
-            this.padding = PADDING_STEPS;
-            this.sourceHeight = source.height();
-        }
-
-        int getStart() {
-            return start;
-        }
-
-        int getStop() {
-            return stop;
-        }
-
-        /**
-         * @return a range containing the start and stop, including padding
-         */
-        Range getRangeWithPadding() {
-            return new Range(Math.max(0, start - padding), Math.min(stop + padding, sourceHeight));
-        }
     }
 }
 
