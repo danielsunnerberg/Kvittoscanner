@@ -40,10 +40,17 @@ public class ContrastDetector {
     }
 
 
-
+    /**
+     * Computes the minimum y-coordinate in the interval where a flash is detected.
+     *
+     * @param receipt Source to be analyzed.
+     * @return y-coordinate of detected flash. -1 if no flash detected.
+     */
     public int getFlashMinY(Mat receipt){
         int sigma = getSigma(receipt);
         List<MatOfPoint> contours = getFlashContours(receipt,sigma);
+        if (contours.size()!=2)
+            return -1;
         int indexOfSmallestArea = getIndexOfSmallestArea(contours);
 
         double minY = contours.get(indexOfSmallestArea).get(0,0)[1];
@@ -53,9 +60,17 @@ public class ContrastDetector {
         return (int)minY;
     }
 
+    /**
+     * Computes the maximum y-coordinate in the interval where a flash is detected.
+     *
+     * @param receipt Source to be analyzed.
+     * @return y-coordinate of detected flash. -1 if no flash detected.
+     */
     public int getFlashMaxY(Mat receipt){
         int sigma = getSigma(receipt);
         List<MatOfPoint> contours = getFlashContours(receipt,sigma);
+        if (contours.size()!=2)
+            return -1;
         int indexOfSmallestArea = getIndexOfSmallestArea(contours);
 
         double maxY = contours.get(indexOfSmallestArea).get(0,0)[1];
@@ -78,6 +93,15 @@ public class ContrastDetector {
         threshOut = ImageEnhancer.onlyThreshold(out, false, Imgproc.THRESH_BINARY, 1,255,false);
         List<MatOfPoint> contours = new ArrayList<>();
         Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        for(int i=1; i<55; i++){
+            if (contours.size()==2)
+                break;
+            System.out.println(i);
+            out = ImageEnhancer.gaussianBlurAndThreshold(receipt,99,99,sigma,200+i,255,true, Imgproc.THRESH_TOZERO_INV, false);
+            threshOut = ImageEnhancer.onlyThreshold(out, false, Imgproc.THRESH_BINARY, 1,255,false);
+            contours = new ArrayList<>();
+            Imgproc.findContours(threshOut, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        }
         return contours;
     }
 
