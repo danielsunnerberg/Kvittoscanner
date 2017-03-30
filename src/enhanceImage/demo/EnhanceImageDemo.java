@@ -27,7 +27,7 @@ public class EnhanceImageDemo implements ActionListener {
 	public static final String RANGEDTHRESHOLDSTRING = "Ranged threshold";
 	public static final String NOTHRESHOLDSTRING = "No threshold";
 	public static final String SHOWIMAGESTRING = "Show image";
-	private final String OTSUSTRING = "OTSU";
+	public static final String OTSUSTRING = "OTSU";
 
 	private final int IMAGESIZE = 500;
 
@@ -44,11 +44,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private GaussianParametersPanel gaussianParametersPanel;
 	private MedianParametersPanel medianParametersPanel;
 
-	private JSlider thresholdSlider;
-	private JSlider thresholdMaxvalSlider;
-	private JSlider thresholdTypeSlider;
-	private JCheckBox otsuCheckBox;
-	private JCheckBox thresholdGrayScaleCheckBox;
+	private RegularThresholdParametersPanel regularThresholdParametersPanel;
 
 	private JSlider adaptiveThresholdMaxvalSlider;
 	private JSlider adaptiveMethodSlider;
@@ -94,7 +90,8 @@ public class EnhanceImageDemo implements ActionListener {
 		leftPanel.add(thresholdPanel);
 
 		thresholdParametersPanel = new JPanel();
-		thresholdParametersPanel.add(new ThresholdParametersPanel(this));
+		regularThresholdParametersPanel = new RegularThresholdParametersPanel(this);
+		thresholdParametersPanel.add(regularThresholdParametersPanel);
 		leftPanel.add(thresholdParametersPanel);
 		currentThreshold = THRESHOLDSTRING;
 		frame.add(leftPanel, BorderLayout.LINE_START);
@@ -140,7 +137,7 @@ public class EnhanceImageDemo implements ActionListener {
 			case THRESHOLDSTRING:
 				currentThreshold = THRESHOLDSTRING;
 				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(new ThresholdParametersPanel(this));
+				thresholdParametersPanel.add(regularThresholdParametersPanel);
 				frame.validate();
 				break;
 			case ADAPTIVETHRESHOLDSTRING:
@@ -162,13 +159,13 @@ public class EnhanceImageDemo implements ActionListener {
 				frame.validate();
 				break;
 			case OTSUSTRING:
-				if (otsuCheckBox.isSelected()) {
-					thresholdGrayScaleCheckBox.setSelected(true);
-					thresholdGrayScaleCheckBox.setEnabled(false);
-					thresholdSlider.setEnabled(false);
+				if (regularThresholdParametersPanel.isOtsuCheckBoxSelected()) {
+					regularThresholdParametersPanel.setGrayScaleCheckBoxSelected(true);
+					regularThresholdParametersPanel.setGrayScaleCheckBoxEnabled(false);
+					regularThresholdParametersPanel.setThresholdSliderEnabled(false);
 				} else {
-					thresholdGrayScaleCheckBox.setEnabled(true);
-					thresholdSlider.setEnabled(true);
+					regularThresholdParametersPanel.setGrayScaleCheckBoxEnabled(true);
+					regularThresholdParametersPanel.setThresholdSliderEnabled(true);
 				}
 				break;
 			case SHOWIMAGESTRING:
@@ -179,9 +176,12 @@ public class EnhanceImageDemo implements ActionListener {
 								Mat enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
 										gaussianParametersPanel.getKernelWidthSliderValue(),
 										gaussianParametersPanel.getKernelHeightSliderValue(),
-										gaussianParametersPanel.getSigmaSliderValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), thresholdGrayScaleCheckBox.isSelected(),
-										thresholdTypeSlider.getValue(), otsuCheckBox.isSelected());
+										gaussianParametersPanel.getSigmaSliderValue(),
+										regularThresholdParametersPanel.getThresholdSliderValue(),
+										regularThresholdParametersPanel.getMaxvalSliderValue(),
+										regularThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
+										regularThresholdParametersPanel.getThresholdTypeSliderValue(),
+										regularThresholdParametersPanel.isOtsuCheckBoxSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
@@ -217,9 +217,12 @@ public class EnhanceImageDemo implements ActionListener {
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
 								Mat enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
-										medianParametersPanel.getKernelSizeSliderValue(), thresholdSlider.getValue(),
-										thresholdMaxvalSlider.getValue(), thresholdGrayScaleCheckBox.isSelected(),
-										thresholdTypeSlider.getValue(), otsuCheckBox.isSelected());
+										medianParametersPanel.getKernelSizeSliderValue(),
+										regularThresholdParametersPanel.getThresholdSliderValue(),
+										regularThresholdParametersPanel.getMaxvalSliderValue(),
+										regularThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
+										regularThresholdParametersPanel.getThresholdTypeSliderValue(),
+										regularThresholdParametersPanel.isOtsuCheckBoxSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
@@ -250,9 +253,11 @@ public class EnhanceImageDemo implements ActionListener {
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
 								Mat enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
-										thresholdGrayScaleCheckBox.isSelected(), thresholdTypeSlider.getValue(),
-										thresholdSlider.getValue(), thresholdMaxvalSlider.getValue(),
-										otsuCheckBox.isSelected());
+										regularThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
+										regularThresholdParametersPanel.getThresholdTypeSliderValue(),
+										regularThresholdParametersPanel.getThresholdSliderValue(),
+										regularThresholdParametersPanel.getMaxvalSliderValue(),
+										regularThresholdParametersPanel.isOtsuCheckBoxSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
@@ -287,63 +292,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class ThresholdParametersPanel extends JPanel {
-		private ThresholdParametersPanel (ActionListener actionListener) {
-			this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-
-			JPanel thresholdPanel = new JPanel();
-			JLabel thresholdSliderLabel = new JLabel("Threshold");
-			thresholdPanel.add(thresholdSliderLabel);
-			thresholdSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 100);
-			thresholdSlider.setMajorTickSpacing(50);
-			thresholdSlider.setMinorTickSpacing(5);
-			thresholdSlider.setPaintTicks(true);
-			thresholdSlider.setPaintLabels(true);
-			thresholdSlider.setSnapToTicks(true);
-			thresholdSlider.setEnabled(false);
-			thresholdPanel.add(thresholdSlider);
-			this.add(thresholdPanel);
-
-			JPanel maxvalPanel = new JPanel();
-			JLabel maxvalSliderLabel = new JLabel("Maxval");
-			maxvalPanel.add(maxvalSliderLabel);
-			thresholdMaxvalSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 255);
-			thresholdMaxvalSlider.setMajorTickSpacing(50);
-			thresholdMaxvalSlider.setMinorTickSpacing(5);
-			thresholdMaxvalSlider.setPaintTicks(true);
-			thresholdMaxvalSlider.setPaintLabels(true);
-			thresholdMaxvalSlider.setSnapToTicks(true);
-			maxvalPanel.add(thresholdMaxvalSlider);
-			this.add(maxvalPanel);
-
-			JPanel thresholdTypeAndCheckBoxPanel = new JPanel();
-			thresholdTypeSlider = new JSlider(JSlider.VERTICAL, 0, 4, 0);
-			thresholdTypeSlider.setMajorTickSpacing(1);
-			thresholdTypeSlider.setPaintTicks(true);
-			thresholdTypeSlider.setSnapToTicks(true);
-			Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
-			labelTable.put(0, new JLabel("Binary"));
-			labelTable.put(1, new JLabel("Binary inverse"));
-			labelTable.put(2, new JLabel("Truncate"));
-			labelTable.put(3, new JLabel("To zero"));
-			labelTable.put(4, new JLabel("To zero inverse"));
-			thresholdTypeSlider.setLabelTable(labelTable);
-			thresholdTypeSlider.setPaintLabels(true);
-			thresholdTypeAndCheckBoxPanel.add(thresholdTypeSlider);
-
-			otsuCheckBox = new JCheckBox("OTSU");
-			otsuCheckBox.setSelected(true);
-			otsuCheckBox.setActionCommand(OTSUSTRING);
-			otsuCheckBox.addActionListener(actionListener);
-			thresholdTypeAndCheckBoxPanel.add(otsuCheckBox);
-			thresholdGrayScaleCheckBox = new JCheckBox("Gray scale");
-			thresholdGrayScaleCheckBox.setSelected(true);
-			thresholdGrayScaleCheckBox.setEnabled(false);
-			thresholdTypeAndCheckBoxPanel.add(thresholdGrayScaleCheckBox);
-			this.add(thresholdTypeAndCheckBoxPanel);
-		}
 	}
 
 	private class AdaptiveThresholdParametersPanel extends JPanel {
