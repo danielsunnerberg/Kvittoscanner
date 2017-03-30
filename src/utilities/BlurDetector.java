@@ -1,17 +1,88 @@
 package utilities;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.*;
 
-import static org.opencv.core.CvType.CV_64F;
+import static org.opencv.core.Core.FONT_HERSHEY_COMPLEX_SMALL;
+import static org.opencv.core.CvType.*;
 
-/**
- * Created by jacobth on 2017-02-01.
- */
 public class BlurDetector {
+
+    private static final Logger logger = LogManager.getLogger(EdgeDetector.class);
+
+    private final boolean debug;
+    private final SectionFinder sectionFinder;
+
+    public BlurDetector() {
+        this(false);
+    }
+
+    public BlurDetector(boolean debug) {
+        this.debug = debug;
+        this.sectionFinder = new SectionFinder();
+    }
+
+
+    // @todo This class should be split to pieces?
+
+    /**
+     * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
+     * the best parts.
+     *
+     * @param frames the list containing the mats.
+     * @return a Mat with all the best parts for all different frames
+     */
+    public Mat createImageRows(List<Mat> frames) {
+        // A list that will contain all the other frames with their splitted parts.
+        List<List<MatPos>> varianceLists = new LinkedList<>();
+
+        if (frames.isEmpty()) {
+            throw new IllegalArgumentException("Cannot extract rows from empty list");
+        }
+
+        logger.info("Using first extracted frame as section reference.");
+        List<SectionFinder.Section> sections = sectionFinder.findSections(frames.get(0));
+        logger.info("Found {} sections.", sections.size());
+
+        for(Mat mat : frames) {
+            varianceLists.add(getVarianceListRows(mat, sections, frames.indexOf(mat)));
+        }
+
+        MatPos[] list = new MatPos[sections.size()];
+        for(List<MatPos> l : varianceLists) {
+            for (MatPos matPos : l) {
+                double variance = matPos.getVar();
+
+                // Is the position empty?
+                if(list[matPos.getY()] == null) {
+                    list[matPos.getY()] = matPos;
+                }
+
+                // Is the position containing a submat with a lower variance than the current submat?
+                else if(list[matPos.getY()].getVar() < variance) {
+                    list[matPos.getY()] = matPos;
+                }
+            }
+        }
+
+        return mergeMats(new ArrayList<>(Arrays.asList(list)), frames);
+    }
+
+    /**
+     * Calculate the variance for a specific image to determine how blurry it is.
+     *
+     * @param imageMat the image in for of a mat
+     * @return the variance of the image
+     */
+    private double getVariance(Mat imageMat) {
+        Mat matGray = new Mat();
+        Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
+        return tenengrad(matGray);
+    }
 
     /**
      * Calculates the contrast using the Tenengrad-algorithm.
@@ -19,7 +90,7 @@ public class BlurDetector {
      * @param source source which the algorithm should be run upon
      * @return contrast value
      */
-    private static double tenengrad(Mat source) {
+    private double tenengrad(Mat source) {
         Mat gx = new Mat();
         Mat gy = new Mat();
 
@@ -34,258 +105,124 @@ public class BlurDetector {
     }
 
     /**
-     * Calculate the variance for a specific image to determine how blurry it is.
-     *
-     * @param imageMat the image in for of a mat
-     * @return the variance of the image
-     */
-    private static double getVariance(Mat imageMat) {
-
-        Mat matOut = new Mat();
-        Mat matGray = new Mat();
-
-        //Convert the mat to grey scale.
-        Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
-        return tenengrad(matGray);
-    }
-
-    /**
-     * Split a image into smaller subsection and add each subsection to a map.
-     *
-     * @param file the name of the image
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a map containing utilities.MatPos and variance value for each subsection.
-     */
-    public static List<MatPos> getVarianceListCols(String file, int divide) {
-
-        Mat imageMat = Imgcodecs.imread(file);
-
-        List<MatPos> list = getVarianceListCols(imageMat, divide);
-
-        return list;
-    }
-
-    /**
      * Split a image into smaller subsection and add each subsection to a map.
      *
      * @param imageMat the mat from the image
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
      * @return a map containing utilities.MatPos and variance value for each subsection.
      */
-    public static List<MatPos> getVarianceListCols(Mat imageMat, int divide) {
-
+    private List<MatPos> getVarianceListRows(Mat imageMat, List<SectionFinder.Section> sections, int referenceIndex) {
         List<MatPos> list = new LinkedList<>();
 
-        int rows = imageMat.rows();
-        int cols = imageMat.cols();
-
-        for(int i = 0; i < divide; i++) {
-            //Split the mat in a row
-            Mat rowMat = imageMat.rowRange(i * rows / divide, (i + 1) * rows / divide);
-
-            for(int j = 0; j < divide; j++) {
-                //Split the current row in to columns
-                Mat colMat = rowMat.colRange(j * cols / divide, (j + 1) * cols / divide);
-                double var = getVariance(colMat);
-
-                //Add the new smaller mat with the position and its variance to the list
-                list.add(new MatPos(colMat, i, j, var));
-            }
-        }
-
-        return list;
-    }
-
-    /**
-     * Split a image into smaller subsection and add each subsection to a map.
-     *
-     * @param imageMat the mat from the image
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a map containing utilities.MatPos and variance value for each subsection.
-     */
-    public static List<MatPos> getVarianceListRows(Mat imageMat, int divide) {
-
-        List<MatPos> list = new LinkedList<>();
-
-        int rows = imageMat.rows();
-
-        for(int i = 0; i < divide; i++) {
-            //Split the mat in a row
-            Mat rowMat = imageMat.rowRange(i * rows / divide, (i + 1) * rows / divide);
+        int index = 0;
+        for (SectionFinder.Section section : sections) {
+            Mat rowMat = imageMat.rowRange(section.getRangeWithPadding());
 
             double var = getVariance(rowMat);
 
-                //Add the new smaller mat with the position and its variance to the list
-            list.add(new MatPos(rowMat, i, var));
-
+            // Add the new smaller mat with the position and its variance to the list
+            list.add(new MatPos(rowMat, index, var, referenceIndex, section));
+            index++;
         }
 
         return list;
     }
 
     /**
-     * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
-     * the best parts.
-     *
-     * @param frames the list containing the mats.
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a Mat with all the best parts for all different frames
-     */
-    public static Mat createImageCols(List<Mat> frames, int divide) {
-
-        //A list that will contain all the other frames with their splitted parts.
-        List<List<MatPos>> varianceLists = new LinkedList<>();
-
-        for(Mat mat : frames) {
-            varianceLists.add(getVarianceListCols(mat, divide));
-        }
-
-        MatPos[][] list = new MatPos[divide][divide];
-
-        for(List<MatPos> l : varianceLists) {
-
-            for (MatPos matPos : l) {
-
-                //System.out.println(matPos.getVar());
-
-                double variance = matPos.getVar();
-
-                //Is the position empty?
-                if(list[matPos.getY()][matPos.getX()] == null) {
-                    list[matPos.getY()][matPos.getX()] = matPos;
-                }
-
-                //Is the position containing a submat with a lower variance than the current submat?
-                else if(list[matPos.getY()][matPos.getX()].getVar() < variance) {
-
-                    list[matPos.getY()][matPos.getX()] = matPos;
-                }
-            }
-        }
-
-        Mat outMat = mergeMats(list, divide);
-
-        return outMat;
-    }
-
-    /**
-     * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
-     * the best parts.
-     *
-     * @param frames the list containing the mats.
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a Mat with all the best parts for all different frames
-     */
-    public static Mat createImageRows(List<Mat> frames, int divide) {
-
-        //A list that will contain all the other frames with their splitted parts.
-        List<List<MatPos>> varianceLists = new LinkedList<>();
-
-        for(Mat mat : frames) {
-            varianceLists.add(getVarianceListRows(mat, divide));
-        }
-
-        MatPos[] list = new MatPos[divide];
-
-        for(List<MatPos> l : varianceLists) {
-
-            for (MatPos matPos : l) {
-
-                //System.out.println(matPos.getVar());
-
-                double variance = matPos.getVar();
-
-                //Is the position empty?
-                if(list[matPos.getY()] == null) {
-                    list[matPos.getY()] = matPos;
-                }
-
-                //Is the position containing a submat with a lower variance than the current submat?
-                else if(list[matPos.getY()].getVar() < variance) {
-
-                    list[matPos.getY()] = matPos;
-                }
-            }
-        }
-
-        Mat outMat = mergeMats(list, divide);
-
-        return outMat;
-    }
-
-    /**
      * Merge the subsections of the original image back to a big image again.
      *
      * @param mats the list containing the mats with the highest variance.
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
      * @return a map containing utilities.MatPos and variance value for each subsection.
      */
-    private static Mat mergeMats(MatPos[][] mats, int divide) {
-
-        //A list that will contain all the columns
-        List<Mat> colList = new LinkedList<>();
-        Mat res = new Mat();
-
-        for(int i = 0; i < divide; i++) {
-
-            Mat row = new Mat();
-            //A list that will contain all the rows
-            List<Mat> rowList = new LinkedList<>();
-
-            for(int j = 0; j < divide; j++) {
-
-                Mat m = mats[i][j].getMat();
-                rowList.add(m);
-            }
-
-            //Merge this row together
-            Core.vconcat(rowList, row);
-            colList.add(row);
-        }
-
-        //Merge all the columns from the rows tigheter
-        Core.hconcat(colList, res);
-
-        return res;
-    }
-
-    /**
-     * Merge the subsections of the original image back to a big image again.
-     *
-     * @param mats the list containing the mats with the highest variance.
-     * @param divide the number of wanted subsections, divide = 4 gives 4 rows and 4 columns
-     * @return a map containing utilities.MatPos and variance value for each subsection.
-     */
-    private static Mat mergeMats(MatPos[] mats, int divide) {
-
+    private Mat mergeMats(List<MatPos> mats, List<Mat> frames) {
         //A list that will contain all the columns
         Mat res = new Mat();
         List<Mat> rowList = new LinkedList<>();
 
-        for(int i = 0; i < divide; i++) {
+        List<MatPos> removeQueue = new ArrayList<>();
+        int maxStop = 0;
+        for (int i = 0; i < mats.size(); i++) {
+            if (i + 1 > mats.size() - 1) {
+                break;
+            }
 
-            Mat m = mats[i].getMat();
-            rowList.add(m);
+            if (i < maxStop) {
+                continue;
+            }
+
+            MatPos matPos = mats.get(i);
+            int referenceIndex = matPos.referenceIndex;
+            if (referenceIndex == mats.get(i + 1).referenceIndex) {
+                int stop = getEqualsStopIndex(mats, i + 1, referenceIndex);
+                maxStop = stop;
+
+                int yStart = matPos.section.getStart();
+                int yStop = mats.get(stop).section.getStop();
+                logger.info("Combine sections [{}, {}] (y-range: [{}, {}])", i, stop, yStart, yStop);
+
+                Mat source = frames.get(referenceIndex);
+                SectionFinder.Section section = new SectionFinder.Section(yStart, yStop, source);
+                matPos.mat = source.rowRange(section.getRangeWithPadding());
+
+                for (int j = i + 1; j <= stop; j++) {
+                    removeQueue.add(mats.get(j));
+                }
+            }
         }
 
+        mats.removeAll(removeQueue);
+
+        Mat padding = createPaddingMat(mats.get(0).mat.size());
+        int i = 0;
+        for (MatPos section : mats) {
+            Mat m = section.getMat();
+
+            if (debug) {
+                displayDebugOnSection(section, m);
+            }
+            rowList.add(m);
+
+            if (i < mats.size() - 1) {
+                // For all but last, add bottom padding
+                rowList.add(padding);
+            }
+            i++;
+        }
+
+        // Combine all the best sections to a single matrix
         Core.vconcat(rowList, res);
 
         return res;
     }
 
-    /**
-     * Create a black and white version of a image.
-     *
-     * @param imageMat the image in for of a mat
-     * @return the same mat but in black and white
-     */
-    public static Mat greyScale(Mat imageMat) {
+    private void displayDebugOnSection(MatPos matPos, Mat m) {
+        Imgproc.putText(
+                m,
+                String.valueOf(matPos.referenceIndex),
+                new Point(10, 15),
+                FONT_HERSHEY_COMPLEX_SMALL,
+                0.8,
+                new Scalar(0,0,255)
+        );
+    }
 
-        Mat matGray = new Mat();
+    private int getEqualsStopIndex(List<MatPos> mats, int start, int referenceId) {
+        // Find the next element which is not equal to the reference
+        for (int i = start; i < mats.size(); i++) {
+            if (mats.get(i).referenceIndex != referenceId) {
+                // i - 1 is always assumed to be in range and equal to the reference
+                return i - 1;
+            }
+        }
 
-        Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
+        return mats.size() - 1;
+    }
 
-        return matGray;
+
+    private Mat createPaddingMat(Size mat) {
+        final int PADDING_HEIGHT = 20;
+        Mat padding = Mat.ones(PADDING_HEIGHT, (int) mat.width, CV_8UC3);
+        padding.setTo(new Scalar(255, 255, 255));
+        return padding;
     }
 
     /**
@@ -295,18 +232,18 @@ public class BlurDetector {
      * @param size the number of mats the list will contain
      * @return the list that contains the least blurry mats
      */
-    public static List<Mat> getBestFrames(List<Mat> frames, int size) {
+    public List<Mat> getBestFrames(List<Mat> frames, int size) {
 
         List<Mat> bestFrames = new LinkedList<>();
         Queue<MatPos> pq = new PriorityQueue<>();
 
-        //Add all mats to the priority queue
+        // Add all mats to the priority queue
         for(Mat mat : frames) {
             double var = getVariance(mat);
             pq.add(new MatPos(mat, var));
         }
 
-        //Take out size elemtns that have the highest variance
+        // Take out size elements that have the highest variance
         for(int i = 0; i < size; i++) {
             Mat mat = pq.poll().getMat();
             bestFrames.add(mat);
@@ -317,27 +254,23 @@ public class BlurDetector {
 
     static class MatPos implements Comparable<MatPos> {
 
+        private SectionFinder.Section section;
+        private int referenceIndex; // @todo Remove
         private Mat mat;
         private int x;
         private int y;
         private double var;
 
-        public MatPos(Mat mat, int x, int y, double var) {
-            this.mat = mat;
-            this.x = x;
-            this.y = y;
-            this.var = var;
-        }
-
-        public MatPos(Mat mat, int y, double var) {
+        MatPos(Mat mat, int y, double var, int referenceIndex, SectionFinder.Section section) {
             this.mat = mat;
             this.x = -1;
             this.y = y;
             this.var = var;
+            this.referenceIndex = referenceIndex;
+            this.section = section;
         }
 
-
-        public MatPos(Mat mat, double var) {
+        MatPos(Mat mat, double var) {
             this.mat = mat;
             this.var = var;
         }
@@ -350,11 +283,11 @@ public class BlurDetector {
             return x;
         }
 
-        public int getY() {
+        int getY() {
             return y;
         }
 
-        public double getVar() {
+        double getVar() {
             return var;
         }
 
