@@ -2,6 +2,7 @@ package enhanceImage.demo;
 
 import enhanceImage.ImageEnhancer;
 import enhanceImage.demo.components.BlurPanel;
+import enhanceImage.demo.components.GaussianParametersPanel;
 import enhanceImage.demo.components.ShowImagePanel;
 import enhanceImage.demo.components.ThresholdPanel;
 import org.opencv.core.Mat;
@@ -43,9 +44,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private JPanel blurParametersPanel;
 	private JPanel thresholdParametersPanel;
 
-	private JSlider kernelWidthSlider;
-	private JSlider kernelHeightSlider;
-	private JSlider sigmaSlider;
+	private GaussianParametersPanel gaussianParametersPanel;
 
 	private JSlider kernelSizeSlider;
 
@@ -89,7 +88,8 @@ public class EnhanceImageDemo implements ActionListener {
 		leftPanel.add(blurPanel);
 
 		blurParametersPanel = new JPanel();
-		blurParametersPanel.add(new GaussianParametersPanel());
+		gaussianParametersPanel = new GaussianParametersPanel();
+		blurParametersPanel.add(gaussianParametersPanel);
 		leftPanel.add(blurParametersPanel);
 		currentBlur = GAUSSIANBLURSTRING;
 
@@ -126,7 +126,7 @@ public class EnhanceImageDemo implements ActionListener {
 			case GAUSSIANBLURSTRING:
 				currentBlur = GAUSSIANBLURSTRING;
 				blurParametersPanel.removeAll();
-				blurParametersPanel.add(new GaussianParametersPanel());
+				blurParametersPanel.add(gaussianParametersPanel);
 				frame.validate();
 				break;
 			case MEDIANBLURSTRING:
@@ -180,32 +180,36 @@ public class EnhanceImageDemo implements ActionListener {
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
 								Mat enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
-										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
-										sigmaSlider.getValue(), thresholdSlider.getValue(),
+										gaussianParametersPanel.getKernelWidthSliderValue(),
+										gaussianParametersPanel.getKernelHeightSliderValue(),
+										gaussianParametersPanel.getSigmaSliderValue(), thresholdSlider.getValue(),
 										thresholdMaxvalSlider.getValue(), thresholdGrayScaleCheckBox.isSelected(),
 										thresholdTypeSlider.getValue(), otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.gaussianBlurAndAdaptiveThreshold(originalMat,
-										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
-										sigmaSlider.getValue(), adaptiveThresholdMaxvalSlider.getValue(),
+										gaussianParametersPanel.getKernelWidthSliderValue(),
+										gaussianParametersPanel.getKernelHeightSliderValue(),
+										gaussianParametersPanel.getSigmaSliderValue(), adaptiveThresholdMaxvalSlider.getValue(),
 										adaptiveMethodSlider.getValue(), adaptiveThresholdTypeSlider.getValue(),
 										blockSizeSlider.getValue(), cSlider.getValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.gaussianBlurAndRangedThreshold(originalMat, false,
-										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
-										sigmaSlider.getValue(), blueMinSlider.getValue(), greenMinSlider.getValue(),
-										redMinSlider.getValue(), blueMaxSlider.getValue(), greenMaxSlider.getValue(),
-										redMaxSlider.getValue());
+										gaussianParametersPanel.getKernelWidthSliderValue(),
+										gaussianParametersPanel.getKernelHeightSliderValue(),
+										gaussianParametersPanel.getSigmaSliderValue(), blueMinSlider.getValue(),
+										greenMinSlider.getValue(), redMinSlider.getValue(), blueMaxSlider.getValue(),
+										greenMaxSlider.getValue(), redMaxSlider.getValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
-										kernelWidthSlider.getValue(), kernelHeightSlider.getValue(),
-										sigmaSlider.getValue(), 0, 0,
+										gaussianParametersPanel.getKernelWidthSliderValue(),
+										gaussianParametersPanel.getKernelHeightSliderValue(),
+										gaussianParametersPanel.getSigmaSliderValue(), 0, 0,
 										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
 										false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
@@ -285,48 +289,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class GaussianParametersPanel extends JPanel {
-		private GaussianParametersPanel () {
-			this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-
-			JPanel kernelWidthPanel = new JPanel();
-			JLabel kernelWidthSliderLabel = new JLabel("Kernel width");
-			kernelWidthPanel.add(kernelWidthSliderLabel);
-			kernelWidthSlider = new JSlider(JSlider.HORIZONTAL,1,31,3);
-			kernelWidthSlider.setMajorTickSpacing(10);
-			kernelWidthSlider.setMinorTickSpacing(2);
-			kernelWidthSlider.setPaintTicks(true);
-			kernelWidthSlider.setPaintLabels(true);
-			kernelWidthSlider.setSnapToTicks(true);
-			kernelWidthPanel.add(kernelWidthSlider);
-			this.add(kernelWidthPanel);
-
-			JPanel kernelHeightPanel = new JPanel();
-			JLabel kernelHeightSliderLabel = new JLabel("Kernel height");
-			kernelHeightPanel.add(kernelHeightSliderLabel);
-			kernelHeightSlider = new JSlider(JSlider.HORIZONTAL,1,31,3);
-			kernelHeightSlider.setMajorTickSpacing(10);
-			kernelHeightSlider.setMinorTickSpacing(2);
-			kernelHeightSlider.setPaintTicks(true);
-			kernelHeightSlider.setPaintLabels(true);
-			kernelHeightSlider.setSnapToTicks(true);
-			kernelHeightPanel.add(kernelHeightSlider);
-			this.add(kernelHeightPanel);
-
-			JPanel sigmaPanel = new JPanel();
-			JLabel sigmaSliderLabel = new JLabel("Sigma");
-			sigmaPanel.add(sigmaSliderLabel);
-			sigmaSlider = new JSlider(JSlider.HORIZONTAL, 0, 30, 0);
-			sigmaSlider.setMajorTickSpacing(10);
-			sigmaSlider.setMinorTickSpacing(1);
-			sigmaSlider.setPaintTicks(true);
-			sigmaSlider.setPaintLabels(true);
-			sigmaSlider.setSnapToTicks(true);
-			sigmaPanel.add(sigmaSlider);
-			this.add(sigmaPanel);
-		}
 	}
 
 	private class MedianParametersPanel extends JPanel {
