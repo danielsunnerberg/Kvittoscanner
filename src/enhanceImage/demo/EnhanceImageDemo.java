@@ -2,6 +2,7 @@ package enhanceImage.demo;
 
 import enhanceImage.ImageEnhancer;
 import enhanceImage.demo.components.BlurPanel;
+import enhanceImage.demo.components.ThresholdPanel;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import utilities.ImageUtils;
@@ -22,10 +23,10 @@ public class EnhanceImageDemo implements ActionListener {
 	public static final String GAUSSIANBLURSTRING = "Gaussian blur";
 	public static final String MEDIANBLURSTRING = "Median blur";
 	public static final String NOBLURSTRING = "No blur";
-	private final String THRESHOLDSTRING = "Threshold";
-	private final String ADAPTIVETHRESHOLDSTRING = "Adaptive threshold";
-	private final String RANGEDTHRESHOLDSTRING = "Ranged threshold";
-	private final String NOTHRESHOLDSTRING = "No threshold";
+	public static final String THRESHOLDSTRING = "Threshold";
+	public static final String ADAPTIVETHRESHOLDSTRING = "Adaptive threshold";
+	public static final String RANGEDTHRESHOLDSTRING = "Ranged threshold";
+	public static final String NOTHRESHOLDSTRING = "No threshold";
 	private final String SHOWIMAGESTRING = "Show image";
 	private final String OTSUSTRING = "OTSU";
 
@@ -97,6 +98,7 @@ public class EnhanceImageDemo implements ActionListener {
 		thresholdParametersPanel = new JPanel();
 		thresholdParametersPanel.add(new ThresholdParametersPanel(this));
 		leftPanel.add(thresholdParametersPanel);
+		currentThreshold = THRESHOLDSTRING;
 		frame.add(leftPanel, BorderLayout.LINE_START);
 
 		JPanel rightPanel = new JPanel();
@@ -282,36 +284,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class ThresholdPanel extends JPanel {
-		private ThresholdPanel (ActionListener actionListener) {
-			this.setLayout(new GridLayout(2,2));
-
-			JRadioButton thresholdButton = new JRadioButton(THRESHOLDSTRING);
-			thresholdButton.setActionCommand(THRESHOLDSTRING);
-			thresholdButton.addActionListener(actionListener);
-			JRadioButton adaptiveThreshButton = new JRadioButton(ADAPTIVETHRESHOLDSTRING);
-			adaptiveThreshButton.setActionCommand(ADAPTIVETHRESHOLDSTRING);
-			adaptiveThreshButton.addActionListener(actionListener);
-			JRadioButton rangedThresholdButton = new JRadioButton(RANGEDTHRESHOLDSTRING);
-			rangedThresholdButton.setActionCommand(RANGEDTHRESHOLDSTRING);
-			rangedThresholdButton.addActionListener(actionListener);
-			JRadioButton noThresholdButton = new JRadioButton(NOTHRESHOLDSTRING);
-			noThresholdButton.setActionCommand(NOTHRESHOLDSTRING);
-			noThresholdButton.addActionListener(actionListener);
-			ButtonGroup thresholdButtons = new ButtonGroup();
-			thresholdButtons.add(thresholdButton);
-			thresholdButtons.add(adaptiveThreshButton);
-			thresholdButtons.add(rangedThresholdButton);
-			thresholdButtons.add(noThresholdButton);
-			this.add(thresholdButton);
-			this.add(adaptiveThreshButton);
-			this.add(rangedThresholdButton);
-			this.add(noThresholdButton);
-			thresholdButton.setSelected(true);
-			currentThreshold = THRESHOLDSTRING;
-		}
 	}
 
 	private class ShowImagePanel extends JPanel {
