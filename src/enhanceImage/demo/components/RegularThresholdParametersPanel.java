@@ -1,4 +1,4 @@
-package enhanceImage.demo;
+package enhanceImage.demo.components;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
