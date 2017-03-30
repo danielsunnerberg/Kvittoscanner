@@ -10,7 +10,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Hashtable;
 
 /**
  * Created by gustavbergstrom on 2017-03-21.
@@ -45,12 +44,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private MedianParametersPanel medianParametersPanel;
 
 	private RegularThresholdParametersPanel regularThresholdParametersPanel;
-
-	private JSlider adaptiveThresholdMaxvalSlider;
-	private JSlider adaptiveMethodSlider;
-	private JSlider adaptiveThresholdTypeSlider;
-	private JSlider blockSizeSlider;
-	private JSlider cSlider;
+	private AdaptiveThresholdParametersPanel adaptiveThresholdParametersPanel;
 
 	private JSlider blueMinSlider;
 	private JSlider blueMaxSlider;
@@ -91,6 +85,7 @@ public class EnhanceImageDemo implements ActionListener {
 
 		thresholdParametersPanel = new JPanel();
 		regularThresholdParametersPanel = new RegularThresholdParametersPanel(this);
+		adaptiveThresholdParametersPanel = new AdaptiveThresholdParametersPanel();
 		thresholdParametersPanel.add(regularThresholdParametersPanel);
 		leftPanel.add(thresholdParametersPanel);
 		currentThreshold = THRESHOLDSTRING;
@@ -143,7 +138,7 @@ public class EnhanceImageDemo implements ActionListener {
 			case ADAPTIVETHRESHOLDSTRING:
 				currentThreshold = ADAPTIVETHRESHOLDSTRING;
 				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(new AdaptiveThresholdParametersPanel());
+				thresholdParametersPanel.add(adaptiveThresholdParametersPanel);
 				frame.validate();
 				break;
 			case RANGEDTHRESHOLDSTRING:
@@ -188,9 +183,12 @@ public class EnhanceImageDemo implements ActionListener {
 								enhancedMat = ImageEnhancer.gaussianBlurAndAdaptiveThreshold(originalMat,
 										gaussianParametersPanel.getKernelWidthSliderValue(),
 										gaussianParametersPanel.getKernelHeightSliderValue(),
-										gaussianParametersPanel.getSigmaSliderValue(), adaptiveThresholdMaxvalSlider.getValue(),
-										adaptiveMethodSlider.getValue(), adaptiveThresholdTypeSlider.getValue(),
-										blockSizeSlider.getValue(), cSlider.getValue());
+										gaussianParametersPanel.getSigmaSliderValue(),
+										adaptiveThresholdParametersPanel.getMaxvalSliderValue(),
+										adaptiveThresholdParametersPanel.getAdaptiveMethodSliderValue(),
+										adaptiveThresholdParametersPanel.getThresholdTypeSliderValue(),
+										adaptiveThresholdParametersPanel.getBlockSizeSliderValue(),
+										adaptiveThresholdParametersPanel.getCSliderValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
@@ -228,9 +226,11 @@ public class EnhanceImageDemo implements ActionListener {
 							case ADAPTIVETHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndAdaptiveThreshold(originalMat,
 										medianParametersPanel.getKernelSizeSliderValue(),
-										adaptiveThresholdMaxvalSlider.getValue(), adaptiveMethodSlider.getValue(),
-										adaptiveThresholdTypeSlider.getValue(), blockSizeSlider.getValue(),
-										cSlider.getValue());
+										adaptiveThresholdParametersPanel.getMaxvalSliderValue(),
+										adaptiveThresholdParametersPanel.getAdaptiveMethodSliderValue(),
+										adaptiveThresholdParametersPanel.getThresholdTypeSliderValue(),
+										adaptiveThresholdParametersPanel.getBlockSizeSliderValue(),
+										adaptiveThresholdParametersPanel.getCSliderValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
@@ -262,9 +262,11 @@ public class EnhanceImageDemo implements ActionListener {
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.onlyAdaptiveThreshold(originalMat,
-										adaptiveThresholdTypeSlider.getValue(),
-										adaptiveThresholdMaxvalSlider.getValue(), adaptiveMethodSlider.getValue(),
-										blockSizeSlider.getValue(), cSlider.getValue());
+										adaptiveThresholdParametersPanel.getThresholdTypeSliderValue(),
+										adaptiveThresholdParametersPanel.getMaxvalSliderValue(),
+										adaptiveThresholdParametersPanel.getAdaptiveMethodSliderValue(),
+										adaptiveThresholdParametersPanel.getBlockSizeSliderValue(),
+										adaptiveThresholdParametersPanel.getCSliderValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
@@ -292,72 +294,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class AdaptiveThresholdParametersPanel extends JPanel {
-		private AdaptiveThresholdParametersPanel () {
-			this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-
-			JPanel maxvalPanel = new JPanel();
-			JLabel maxvalSliderLabel = new JLabel("Maxval");
-			maxvalPanel.add(maxvalSliderLabel);
-			adaptiveThresholdMaxvalSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, 255);
-			adaptiveThresholdMaxvalSlider.setMajorTickSpacing(50);
-			adaptiveThresholdMaxvalSlider.setMinorTickSpacing(5);
-			adaptiveThresholdMaxvalSlider.setPaintTicks(true);
-			adaptiveThresholdMaxvalSlider.setPaintLabels(true);
-			adaptiveThresholdMaxvalSlider.setSnapToTicks(true);
-			maxvalPanel.add(adaptiveThresholdMaxvalSlider);
-			this.add(maxvalPanel);
-
-			JPanel adaptiveMethodAndThresholdTypePanel = new JPanel();
-			adaptiveMethodSlider = new JSlider(JSlider.VERTICAL, 0, 1, 0);
-			adaptiveMethodSlider.setMajorTickSpacing(1);
-			adaptiveMethodSlider.setPaintTicks(true);
-			Hashtable<Integer, JLabel> adaptiveMethodLabelTable = new Hashtable<>();
-			adaptiveMethodLabelTable.put(0, new JLabel("Mean"));
-			adaptiveMethodLabelTable.put(1, new JLabel("Gaussian"));
-			adaptiveMethodSlider.setLabelTable(adaptiveMethodLabelTable);
-			adaptiveMethodSlider.setPaintLabels(true);
-			adaptiveMethodSlider.setSnapToTicks(true);
-			adaptiveMethodAndThresholdTypePanel.add(adaptiveMethodSlider);
-
-			adaptiveThresholdTypeSlider = new JSlider(JSlider.VERTICAL, 0, 1, 0);
-			adaptiveThresholdTypeSlider.setMajorTickSpacing(1);
-			adaptiveThresholdTypeSlider.setPaintTicks(true);
-			Hashtable<Integer, JLabel> thresholdTypeLabelTable = new Hashtable<>();
-			thresholdTypeLabelTable.put(0, new JLabel("Binary"));
-			thresholdTypeLabelTable.put(1, new JLabel("Binary inverse"));
-			adaptiveThresholdTypeSlider.setLabelTable(thresholdTypeLabelTable);
-			adaptiveThresholdTypeSlider.setPaintLabels(true);
-			adaptiveThresholdTypeSlider.setSnapToTicks(true);
-			adaptiveMethodAndThresholdTypePanel.add(adaptiveThresholdTypeSlider);
-			this.add(adaptiveMethodAndThresholdTypePanel);
-
-			JPanel blockSizePanel = new JPanel();
-			JLabel blockSizeSliderLabel = new JLabel("Block size");
-			blockSizePanel.add(blockSizeSliderLabel);
-			blockSizeSlider = new JSlider(JSlider.HORIZONTAL, 3,  33, 3);
-			blockSizeSlider.setMajorTickSpacing(10);
-			blockSizeSlider.setMinorTickSpacing(2);
-			blockSizeSlider.setPaintTicks(true);
-			blockSizeSlider.setPaintLabels(true);
-			blockSizeSlider.setSnapToTicks(true);
-			blockSizePanel.add(blockSizeSlider);
-			this.add(blockSizePanel);
-
-			JPanel cPanel = new JPanel();
-			JLabel cSliderLabel = new JLabel("C");
-			cPanel.add(cSliderLabel);
-			cSlider = new JSlider(JSlider.HORIZONTAL, -20, 20, 5);
-			cSlider.setMajorTickSpacing(5);
-			cSlider.setMinorTickSpacing(1);
-			cSlider.setPaintTicks(true);
-			cSlider.setPaintLabels(true);
-			cSlider.setSnapToTicks(true);
-			cPanel.add(cSlider);
-			this.add(cPanel);
-		}
 	}
 
 	private class RangedThresholdParametersPanel extends JPanel {
