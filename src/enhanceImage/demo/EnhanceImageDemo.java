@@ -39,6 +39,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private JLabel imageLabel;
 	private JPanel blurParametersPanel;
 	private JPanel thresholdParametersPanel;
+	private ImagePanel imagePanel;
 
 	private GaussianParametersPanel gaussianParametersPanel;
 	private MedianParametersPanel medianParametersPanel;
@@ -93,11 +94,7 @@ public class EnhanceImageDemo implements ActionListener {
 		ShowImagePanel showImagePanel = new ShowImagePanel(this);
 		rightPanel.add(showImagePanel);
 
-		JPanel imagePanel = new JPanel();
-		imageLabel = new JLabel();
-		ImageIcon icon = new ImageIcon(currentImage);
-		imageLabel.setIcon(icon);
-		imagePanel.add(imageLabel);
+		imagePanel = new ImagePanel(currentImage);
 		rightPanel.add(imagePanel);
 		frame.add(rightPanel, BorderLayout.LINE_END);
 		frame.setVisible(true);
@@ -275,16 +272,15 @@ public class EnhanceImageDemo implements ActionListener {
 						}
 						break;
 				}
-				showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
+				showMat(enhancedMat);
 				break;
 		}
 	}
 
-	private void showMat (Mat mat, int width, int height) {
-		Mat resizedMat = ImageUtils.resize(mat, width, height);
+	private void showMat (Mat mat) {
+		Mat resizedMat = ImageUtils.resize(mat, IMAGESIZE, IMAGESIZE);
 		Image image = ImageUtils.matToImage(resizedMat);
-		ImageIcon icon = new ImageIcon(image);
-		imageLabel.setIcon(icon);
+		imagePanel.updateImage(image);
 		frame.validate();
 	}
 }
