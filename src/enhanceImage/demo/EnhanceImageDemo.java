@@ -151,11 +151,12 @@ public class EnhanceImageDemo implements ActionListener {
 				regularThresholdParametersPanel.setThresholdSliderEnabled(!isOtsuCheckBoxSelected);
 				break;
 			case SHOWIMAGESTRING:
+				Mat enhancedMat = new Mat();
 				switch (currentBlur) {
 					case GAUSSIANBLURSTRING:
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
-								Mat enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
+								enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
 										gaussianParametersPanel.getKernelWidthSliderValue(),
 										gaussianParametersPanel.getKernelHeightSliderValue(),
 										gaussianParametersPanel.getSigmaSliderValue(),
@@ -164,7 +165,6 @@ public class EnhanceImageDemo implements ActionListener {
 										regularThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
 										regularThresholdParametersPanel.getThresholdTypeSliderValue(),
 										regularThresholdParametersPanel.isOtsuCheckBoxSelected());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.gaussianBlurAndAdaptiveThreshold(originalMat,
@@ -176,7 +176,6 @@ public class EnhanceImageDemo implements ActionListener {
 										adaptiveThresholdParametersPanel.getThresholdTypeSliderValue(),
 										adaptiveThresholdParametersPanel.getBlockSizeSliderValue(),
 										adaptiveThresholdParametersPanel.getCSliderValue());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.gaussianBlurAndRangedThreshold(originalMat, false,
@@ -189,7 +188,6 @@ public class EnhanceImageDemo implements ActionListener {
 										rangedThresholdParametersPanel.getBlueMaxSliderValue(),
 										rangedThresholdParametersPanel.getGreenMaxSliderValue(),
 										rangedThresholdParametersPanel.getRedMaxSliderValue());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.gaussianBlurAndThreshold(originalMat,
@@ -199,21 +197,19 @@ public class EnhanceImageDemo implements ActionListener {
 										noThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
 										ImageEnhancer.THRESH_NONE,
 										false);
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
 						break;
 					case MEDIANBLURSTRING:
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
-								Mat enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
+								enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
 										medianParametersPanel.getKernelSizeSliderValue(),
 										regularThresholdParametersPanel.getThresholdSliderValue(),
 										regularThresholdParametersPanel.getMaxvalSliderValue(),
 										regularThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
 										regularThresholdParametersPanel.getThresholdTypeSliderValue(),
 										regularThresholdParametersPanel.isOtsuCheckBoxSelected());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndAdaptiveThreshold(originalMat,
@@ -223,7 +219,6 @@ public class EnhanceImageDemo implements ActionListener {
 										adaptiveThresholdParametersPanel.getThresholdTypeSliderValue(),
 										adaptiveThresholdParametersPanel.getBlockSizeSliderValue(),
 										adaptiveThresholdParametersPanel.getCSliderValue());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndRangedThreshold(originalMat, false,
@@ -234,7 +229,6 @@ public class EnhanceImageDemo implements ActionListener {
 										rangedThresholdParametersPanel.getBlueMaxSliderValue(),
 										rangedThresholdParametersPanel.getGreenMaxSliderValue(),
 										rangedThresholdParametersPanel.getRedMaxSliderValue());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
@@ -242,20 +236,18 @@ public class EnhanceImageDemo implements ActionListener {
 										noThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
 										ImageEnhancer.THRESH_NONE,
 										false);
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
 						break;
 					case NOBLURSTRING:
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
-								Mat enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
+								enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
 										regularThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
 										regularThresholdParametersPanel.getThresholdTypeSliderValue(),
 										regularThresholdParametersPanel.getThresholdSliderValue(),
 										regularThresholdParametersPanel.getMaxvalSliderValue(),
 										regularThresholdParametersPanel.isOtsuCheckBoxSelected());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.onlyAdaptiveThreshold(originalMat,
@@ -264,7 +256,6 @@ public class EnhanceImageDemo implements ActionListener {
 										adaptiveThresholdParametersPanel.getAdaptiveMethodSliderValue(),
 										adaptiveThresholdParametersPanel.getBlockSizeSliderValue(),
 										adaptiveThresholdParametersPanel.getCSliderValue());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.onlyRangedThreshold(originalMat, false,
@@ -274,18 +265,17 @@ public class EnhanceImageDemo implements ActionListener {
 										rangedThresholdParametersPanel.getBlueMaxSliderValue(),
 										rangedThresholdParametersPanel.getGreenMaxSliderValue(),
 										rangedThresholdParametersPanel.getRedMaxSliderValue());
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
 										noThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
 										ImageEnhancer.THRESH_NONE,
 										0, 0, false);
-								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 						}
 						break;
 				}
+				showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 				break;
 		}
 	}
