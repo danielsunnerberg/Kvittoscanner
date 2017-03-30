@@ -1,10 +1,7 @@
 package enhanceImage.demo;
 
 import enhanceImage.ImageEnhancer;
-import enhanceImage.demo.components.BlurPanel;
-import enhanceImage.demo.components.GaussianParametersPanel;
-import enhanceImage.demo.components.ShowImagePanel;
-import enhanceImage.demo.components.ThresholdPanel;
+import enhanceImage.demo.components.*;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import utilities.ImageUtils;
@@ -45,8 +42,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private JPanel thresholdParametersPanel;
 
 	private GaussianParametersPanel gaussianParametersPanel;
-
-	private JSlider kernelSizeSlider;
+	private MedianParametersPanel medianParametersPanel;
 
 	private JSlider thresholdSlider;
 	private JSlider thresholdMaxvalSlider;
@@ -89,6 +85,7 @@ public class EnhanceImageDemo implements ActionListener {
 
 		blurParametersPanel = new JPanel();
 		gaussianParametersPanel = new GaussianParametersPanel();
+		medianParametersPanel = new MedianParametersPanel();
 		blurParametersPanel.add(gaussianParametersPanel);
 		leftPanel.add(blurParametersPanel);
 		currentBlur = GAUSSIANBLURSTRING;
@@ -132,7 +129,7 @@ public class EnhanceImageDemo implements ActionListener {
 			case MEDIANBLURSTRING:
 				currentBlur = MEDIANBLURSTRING;
 				blurParametersPanel.removeAll();
-				blurParametersPanel.add(new MedianParametersPanel());
+				blurParametersPanel.add(medianParametersPanel);
 				frame.validate();
 				break;
 			case NOBLURSTRING:
@@ -220,28 +217,29 @@ public class EnhanceImageDemo implements ActionListener {
 						switch (currentThreshold) {
 							case THRESHOLDSTRING:
 								Mat enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
-										kernelSizeSlider.getValue(), thresholdSlider.getValue(),
+										medianParametersPanel.getKernelSizeSliderValue(), thresholdSlider.getValue(),
 										thresholdMaxvalSlider.getValue(), thresholdGrayScaleCheckBox.isSelected(),
 										thresholdTypeSlider.getValue(), otsuCheckBox.isSelected());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case ADAPTIVETHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndAdaptiveThreshold(originalMat,
-										kernelSizeSlider.getValue(), adaptiveThresholdMaxvalSlider.getValue(),
-										adaptiveMethodSlider.getValue(), adaptiveThresholdTypeSlider.getValue(),
-										blockSizeSlider.getValue(), cSlider.getValue());
+										medianParametersPanel.getKernelSizeSliderValue(),
+										adaptiveThresholdMaxvalSlider.getValue(), adaptiveMethodSlider.getValue(),
+										adaptiveThresholdTypeSlider.getValue(), blockSizeSlider.getValue(),
+										cSlider.getValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case RANGEDTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndRangedThreshold(originalMat, false,
-										kernelSizeSlider.getValue(), blueMinSlider.getValue(),
+										medianParametersPanel.getKernelSizeSliderValue(), blueMinSlider.getValue(),
 										greenMinSlider.getValue(), redMinSlider.getValue(), blueMaxSlider.getValue(),
 										greenMaxSlider.getValue(), redMaxSlider.getValue());
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
-										kernelSizeSlider.getValue(), 0, 0,
+										medianParametersPanel.getKernelSizeSliderValue(), 0, 0,
 										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
 										false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
@@ -289,20 +287,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class MedianParametersPanel extends JPanel {
-		private MedianParametersPanel () {
-			JLabel kernelSizeSliderLabel = new JLabel("Kernel size");
-			this.add(kernelSizeSliderLabel);
-			kernelSizeSlider = new JSlider(JSlider.HORIZONTAL,1,31,3);
-			kernelSizeSlider.setMajorTickSpacing(10);
-			kernelSizeSlider.setMinorTickSpacing(2);
-			kernelSizeSlider.setPaintTicks(true);
-			kernelSizeSlider.setPaintLabels(true);
-			kernelSizeSlider.setSnapToTicks(true);
-			this.add(kernelSizeSlider);
-		}
 	}
 
 	private class ThresholdParametersPanel extends JPanel {
