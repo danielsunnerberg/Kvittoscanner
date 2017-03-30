@@ -255,7 +255,7 @@ public class BlurDetector {
     static class MatPos implements Comparable<MatPos> {
 
         private SectionFinder.Section section;
-        private int referenceIndex; // @todo Remove
+        private int referenceIndex;
         private Mat mat;
         private int x;
         private int y;

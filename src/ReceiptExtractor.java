@@ -16,12 +16,12 @@ public class ReceiptExtractor {
 
     // @todo Set these constants based on the video itself?
     private final static int NUM_SPLITTED_FRAMES = 30;
-    private final static int NUM_IMAGE_PIECES = 24;
 
     private static final Logger logger = LogManager.getLogger(ReceiptExtractor.class);
 
     private final EdgeDetector edgeDetector = new EdgeDetector();
     private final ReceiptAligner receiptAligner = new ReceiptAligner();
+    private final BlurDetector blurDetector = new BlurDetector(false);
 
     /**
      * Extracts a receipt from a video stream by finding the best pieces of
@@ -42,7 +42,7 @@ public class ReceiptExtractor {
         }
         logger.info("Splitted capture to {} frames", frames.size());
 
-        frames = BlurDetector.getBestFrames(frames, frames.size() / 2);
+        frames = blurDetector.getBestFrames(frames, frames.size() / 2);
         logger.info("Selected the {} best frames", frames.size());
 
         rotateFrames(frames);
@@ -71,7 +71,7 @@ public class ReceiptExtractor {
         logger.info("Extracted {} receipts from {} frames", receipts.size(), frames.size());
 
         // Merge receipts into super-image
-        return BlurDetector.createImageRows(receipts, NUM_IMAGE_PIECES);
+        return blurDetector.createImageRows(receipts);
     }
 
     private void rotateFrames(List<Mat> frames) {
