@@ -2,6 +2,7 @@ package enhanceImage.demo;
 
 import enhanceImage.ImageEnhancer;
 import enhanceImage.demo.components.BlurPanel;
+import enhanceImage.demo.components.ShowImagePanel;
 import enhanceImage.demo.components.ThresholdPanel;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -27,7 +28,7 @@ public class EnhanceImageDemo implements ActionListener {
 	public static final String ADAPTIVETHRESHOLDSTRING = "Adaptive threshold";
 	public static final String RANGEDTHRESHOLDSTRING = "Ranged threshold";
 	public static final String NOTHRESHOLDSTRING = "No threshold";
-	private final String SHOWIMAGESTRING = "Show image";
+	public static final String SHOWIMAGESTRING = "Show image";
 	private final String OTSUSTRING = "OTSU";
 
 	private final int IMAGESIZE = 500;
@@ -284,15 +285,6 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class ShowImagePanel extends JPanel {
-		private ShowImagePanel (ActionListener actionListener) {
-			JButton showImageButton = new JButton(SHOWIMAGESTRING);
-			showImageButton.setActionCommand(SHOWIMAGESTRING);
-			showImageButton.addActionListener(actionListener);
-			this.add(showImageButton);
-		}
 	}
 
 	private class GaussianParametersPanel extends JPanel {
