@@ -36,7 +36,6 @@ public class EnhanceImageDemo implements ActionListener {
 	private String currentThreshold;
 
 	private JFrame frame;
-	private JLabel imageLabel;
 	private JPanel blurParametersPanel;
 	private JPanel thresholdParametersPanel;
 	private ImagePanel imagePanel;
@@ -49,7 +48,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private RangedThresholdParametersPanel rangedThresholdParametersPanel;
 	private NoThresholdParametersPanel noThresholdParametersPanel;
 
-	public EnhanceImageDemo (String imageName) {
+	EnhanceImageDemo (String imageName) {
 		String file = IMAGEPATH + imageName;
 		originalMat = Imgcodecs.imread(file);
 		Mat resizedMat = ImageUtils.resize(originalMat, IMAGESIZE, IMAGESIZE);
