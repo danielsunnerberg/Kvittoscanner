@@ -46,8 +46,7 @@ public class EnhanceImageDemo implements ActionListener {
 	private RegularThresholdParametersPanel regularThresholdParametersPanel;
 	private AdaptiveThresholdParametersPanel adaptiveThresholdParametersPanel;
 	private RangedThresholdParametersPanel rangedThresholdParametersPanel;
-
-	private JCheckBox noThresholdGrayScaleCheckBox;
+	private NoThresholdParametersPanel noThresholdParametersPanel;
 
 	public EnhanceImageDemo (String imageName) {
 		String file = IMAGEPATH + imageName;
@@ -81,6 +80,7 @@ public class EnhanceImageDemo implements ActionListener {
 		regularThresholdParametersPanel = new RegularThresholdParametersPanel(this);
 		adaptiveThresholdParametersPanel = new AdaptiveThresholdParametersPanel();
 		rangedThresholdParametersPanel = new RangedThresholdParametersPanel();
+		noThresholdParametersPanel = new NoThresholdParametersPanel();
 		thresholdParametersPanel.add(regularThresholdParametersPanel);
 		leftPanel.add(thresholdParametersPanel);
 		currentThreshold = THRESHOLDSTRING;
@@ -145,7 +145,7 @@ public class EnhanceImageDemo implements ActionListener {
 			case NOTHRESHOLDSTRING:
 				currentThreshold = NOTHRESHOLDSTRING;
 				thresholdParametersPanel.removeAll();
-				thresholdParametersPanel.add(new NoThresholdParametersPanel());
+				thresholdParametersPanel.add(noThresholdParametersPanel);
 				frame.validate();
 				break;
 			case OTSUSTRING:
@@ -204,7 +204,8 @@ public class EnhanceImageDemo implements ActionListener {
 										gaussianParametersPanel.getKernelWidthSliderValue(),
 										gaussianParametersPanel.getKernelHeightSliderValue(),
 										gaussianParametersPanel.getSigmaSliderValue(), 0, 0,
-										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
+										noThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
+										ImageEnhancer.THRESH_NONE,
 										false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
@@ -246,7 +247,8 @@ public class EnhanceImageDemo implements ActionListener {
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.medianBlurAndThreshold(originalMat,
 										medianParametersPanel.getKernelSizeSliderValue(), 0, 0,
-										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
+										noThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
+										ImageEnhancer.THRESH_NONE,
 										false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
@@ -284,7 +286,8 @@ public class EnhanceImageDemo implements ActionListener {
 								break;
 							case NOTHRESHOLDSTRING:
 								enhancedMat = ImageEnhancer.onlyThreshold(originalMat,
-										noThresholdGrayScaleCheckBox.isSelected(), ImageEnhancer.THRESH_NONE,
+										noThresholdParametersPanel.isGrayScaleCheckBoxSelected(),
+										ImageEnhancer.THRESH_NONE,
 										0, 0, false);
 								showMat(enhancedMat, IMAGESIZE, IMAGESIZE);
 								break;
@@ -301,13 +304,5 @@ public class EnhanceImageDemo implements ActionListener {
 		ImageIcon icon = new ImageIcon(image);
 		imageLabel.setIcon(icon);
 		frame.validate();
-	}
-
-	private class NoThresholdParametersPanel extends JPanel {
-		private NoThresholdParametersPanel () {
-			noThresholdGrayScaleCheckBox = new JCheckBox("Gray scale");
-			noThresholdGrayScaleCheckBox.setSelected(true);
-			this.add(noThresholdGrayScaleCheckBox);
-		}
 	}
 }
