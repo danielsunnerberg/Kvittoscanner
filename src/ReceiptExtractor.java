@@ -2,11 +2,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
-import utilities.BlurDetector;
 import utilities.EdgeDetector;
 import utilities.ReceiptAligner;
+import utilities.ReceiptMerger;
 import utilities.VideoSplitter;
 
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ public class ReceiptExtractor {
 
     private final EdgeDetector edgeDetector = new EdgeDetector();
     private final ReceiptAligner receiptAligner = new ReceiptAligner();
-    private final BlurDetector blurDetector = new BlurDetector(false);
+    private final ReceiptMerger receiptMerger = new ReceiptMerger(false);
 
     /**
      * Extracts a receipt from a video stream by finding the best pieces of
@@ -42,7 +41,7 @@ public class ReceiptExtractor {
         }
         logger.info("Splitted capture to {} frames", frames.size());
 
-        frames = blurDetector.getBestFrames(frames, frames.size() / 2);
+        frames = receiptMerger.getBestFrames(frames, frames.size() / 2);
         logger.info("Selected the {} best frames", frames.size());
 
         rotateFrames(frames);
@@ -71,7 +70,7 @@ public class ReceiptExtractor {
         logger.info("Extracted {} receipts from {} frames", receipts.size(), frames.size());
 
         // Merge receipts into super-image
-        return blurDetector.createImageRows(receipts);
+        return receiptMerger.createImageRows(receipts);
     }
 
     private void rotateFrames(List<Mat> frames) {

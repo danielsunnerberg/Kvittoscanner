@@ -1,5 +1,6 @@
 package utilities;
 
+import blurDetectors.BlurDetector;
 import org.junit.Before;
 import org.junit.Test;
 import org.opencv.core.Core;

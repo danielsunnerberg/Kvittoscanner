@@ -5,7 +5,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 /**
- * Class containing methods for enhancing an image. The methods combine applying Gaussian blur, median blur and no blur
+ * Class containing methods for enhancing an image. The methods combine applying Gaussian blurDetectors, median blurDetectors and no blurDetectors
  * with applying regular threshold, adaptive threshold and ranged threshold.
  *
  * Created by gustavbergstrom on 2017-02-21.
@@ -15,18 +15,18 @@ public class ImageEnhancer {
 	public static int THRESH_NONE = Integer.MAX_VALUE;
 
 	/**
-	 * Enhance image using Gaussian blur and a threshold.
+	 * Enhance image using Gaussian blurDetectors and a threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
-	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
-	 * @param kernelHeight The kernel height to apply gaussian blur with. Default is 3.
+	 * @param kernelWidth The kernel width to apply gaussian blurDetectors with. Default is 3.
+	 * @param kernelHeight The kernel height to apply gaussian blurDetectors with. Default is 3.
 	 * @param sigma The standard deviation to be used when applying gaussian blue. Default is 0.
 	 * @param threshold The threshold value. Should be between 0 and 255.
 	 *                  This value is only used when otsu is set to false. Otherwise it can be set to anything.
 	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
 	 *               This value is only used when thresholdType is set to THRESH_BINARY and THRESH_BINARY_INV.
 	 *               Otherwise it can be set to anything.
-	 * @param grayScale If true, the image is converted to gray scale before applying blur. Must be true if otsu is true.
+	 * @param grayScale If true, the image is converted to gray scale before applying blurDetectors. Must be true if otsu is true.
 	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
 	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
 	 *                      All other pixels are set to 0.
@@ -59,7 +59,7 @@ public class ImageEnhancer {
 			modifiedMat = mat;
 		}
 
-		// Apply Gaussian blur to image
+		// Apply Gaussian blurDetectors to image
 		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
 
 		if (thresholdType != THRESH_NONE) {
@@ -71,11 +71,11 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance image using Gaussian blur and an adaptive threshold.
+	 * Enhance image using Gaussian blurDetectors and an adaptive threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
-	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
-	 * @param kernelHeight The kernel height to apply gaussian blur with. Default is 3.
+	 * @param kernelWidth The kernel width to apply gaussian blurDetectors with. Default is 3.
+	 * @param kernelHeight The kernel height to apply gaussian blurDetectors with. Default is 3.
 	 * @param sigma The standard deviation to be used when applying gaussian blue. Default is 0.
 	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
 	 * @param adaptiveMethod The adaptive thresholding algorithm to use. Can be one of the following values:
@@ -103,7 +103,7 @@ public class ImageEnhancer {
 		// Convert image to gray scale
 		Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
 
-		// Apply Gaussian blur to image
+		// Apply Gaussian blurDetectors to image
 		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
 
 		// Apply threshold to image
@@ -114,13 +114,13 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance image using Gaussian blur and a ranged threshold.
+	 * Enhance image using Gaussian blurDetectors and a ranged threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
-	 * @param kernelWidth The kernel width to apply gaussian blur with. Default is 3.
-	 * @param kernelHeight The kernel height to apply gaussian blur with. Default is 3.
+	 * @param kernelWidth The kernel width to apply gaussian blurDetectors with. Default is 3.
+	 * @param kernelHeight The kernel height to apply gaussian blurDetectors with. Default is 3.
 	 * @param sigma The standard deviation to be used when applying gaussian blue. Default is 0.
-	 * @param grayScale If true, the image is converted to gray scale before applying blur.
+	 * @param grayScale If true, the image is converted to gray scale before applying blurDetectors.
 	 * @param low_b The lower threshold for the blue channel.
 	 * @param low_g The lower threshold for the green channel.
 	 * @param low_r The lower threshold for the red channel.
@@ -142,7 +142,7 @@ public class ImageEnhancer {
 			modifiedMat = mat;
 		}
 
-		// Apply Gaussian blur to image
+		// Apply Gaussian blurDetectors to image
 		Imgproc.GaussianBlur(modifiedMat, modifiedMat, new Size(kernelWidth, kernelHeight), sigma);
 
 		// Apply ranged threshold to image
@@ -152,16 +152,16 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance image using median blur and a threshold.
+	 * Enhance image using median blurDetectors and a threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
-	 * @param kernelSize The kernel size to apply median blur with. Default is 3.
+	 * @param kernelSize The kernel size to apply median blurDetectors with. Default is 3.
 	 * @param threshold The threshold value. Should be between 0 and 255.
 	 *                  This value is only used when otsu is set to false. Otherwise it can be set to anything.
 	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
 	 *               This value is only used when thresholdType is set to THRESH_BINARY and THRESH_BINARY_INV.
 	 *               Otherwise it can be set to anything.
-	 * @param grayScale If true, the image is converted to gray scale before applying blur. Must be true if otsu is true.
+	 * @param grayScale If true, the image is converted to gray scale before applying blurDetectors. Must be true if otsu is true.
 	 * @param thresholdType The type of threshold to be applied. Can be one of the following values:
 	 *                      THRESH_BINARY Pixels with a higher value than the threshold are set to maxval.
 	 *                      All other pixels are set to 0.
@@ -193,7 +193,7 @@ public class ImageEnhancer {
 			modifiedMat = mat;
 		}
 
-		// Apply Median blur to image
+		// Apply Median blurDetectors to image
 		Imgproc.medianBlur(modifiedMat, modifiedMat, kernelSize);
 
 		if (thresholdType != THRESH_NONE) {
@@ -205,10 +205,10 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance image using median blur and an adaptive threshold.
+	 * Enhance image using median blurDetectors and an adaptive threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
-	 * @param kernelSize The kernel size to apply median blur with. Default is 3.
+	 * @param kernelSize The kernel size to apply median blurDetectors with. Default is 3.
 	 * @param maxval The maximum value to set pixels to. Should be between 0 and 255.
 	 * @param adaptiveMethod The adaptive thresholding algorithm to use. Can be one of the following values:
 	 *                       ADAPTIVE_THRESH_MEAN_C The threshold value T(x,y) is a mean of the blockSize * blockSize
@@ -234,7 +234,7 @@ public class ImageEnhancer {
 		// Convert image to gray scale
 		Imgproc.cvtColor(mat, modifiedMat, Imgproc.COLOR_BGR2GRAY);
 
-		// Apply median blur to image
+		// Apply median blurDetectors to image
 		Imgproc.medianBlur(modifiedMat, modifiedMat, kernelSize);
 
 		// Apply threshold to image
@@ -245,11 +245,11 @@ public class ImageEnhancer {
 	}
 
 	/**
-	 * Enhance image using median blur and a ranged threshold.
+	 * Enhance image using median blurDetectors and a ranged threshold.
 	 *
 	 * @param mat The matrix to enhance text in.
-	 * @param kernelSize The kernel size to apply gaussian blur with. Default is 3.
-	 * @param grayScale If true, the image is converted to gray scale before applying blur.
+	 * @param kernelSize The kernel size to apply gaussian blurDetectors with. Default is 3.
+	 * @param grayScale If true, the image is converted to gray scale before applying blurDetectors.
 	 * @param low_b The lower threshold for the blue channel.
 	 * @param low_g The lower threshold for the green channel.
 	 * @param low_r The lower threshold for the red channel.
@@ -270,7 +270,7 @@ public class ImageEnhancer {
 			modifiedMat = mat;
 		}
 
-		// Apply median blur to image
+		// Apply median blurDetectors to image
 		Imgproc.medianBlur(modifiedMat, modifiedMat, kernelSize);
 
 		// Apply ranged threshold to image

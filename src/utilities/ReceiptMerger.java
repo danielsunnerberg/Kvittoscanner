@@ -1,5 +1,7 @@
 package utilities;
 
+import blurDetectors.BlurDetector;
+import blurDetectors.TenengradBlurDetector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opencv.core.*;
@@ -8,26 +10,26 @@ import org.opencv.imgproc.Imgproc;
 import java.util.*;
 
 import static org.opencv.core.Core.FONT_HERSHEY_COMPLEX_SMALL;
-import static org.opencv.core.CvType.*;
+import static org.opencv.core.CvType.CV_8UC3;
 
-public class BlurDetector {
+public class ReceiptMerger {
 
     private static final Logger logger = LogManager.getLogger(EdgeDetector.class);
 
-    private final boolean debug;
     private final SectionFinder sectionFinder;
+    private final BlurDetector blurDetector;
 
-    public BlurDetector() {
+    private final boolean debug;
+
+    public ReceiptMerger() {
         this(false);
     }
 
-    public BlurDetector(boolean debug) {
+    public ReceiptMerger(boolean debug) {
         this.debug = debug;
         this.sectionFinder = new SectionFinder();
+        this.blurDetector = new TenengradBlurDetector();
     }
-
-
-    // @todo This class should be split to pieces?
 
     /**
      * Creates a Mat from a list of mats and select the best part from each mat and put it to one picture with all
@@ -73,38 +75,6 @@ public class BlurDetector {
     }
 
     /**
-     * Calculate the variance for a specific image to determine how blurry it is.
-     *
-     * @param imageMat the image in for of a mat
-     * @return the variance of the image
-     */
-    private double getVariance(Mat imageMat) {
-        Mat matGray = new Mat();
-        Imgproc.cvtColor(imageMat, matGray, Imgproc.COLOR_BGR2GRAY);
-        return tenengrad(matGray);
-    }
-
-    /**
-     * Calculates the contrast using the Tenengrad-algorithm.
-     *
-     * @param source source which the algorithm should be run upon
-     * @return contrast value
-     */
-    private double tenengrad(Mat source) {
-        Mat gx = new Mat();
-        Mat gy = new Mat();
-
-        final int KERNEL_SIZE = 3;
-        Imgproc.Sobel(source, gx, CV_64F, 1, 0, KERNEL_SIZE, 1, 5);
-        Imgproc.Sobel(source, gy, CV_64F, 0, 1, KERNEL_SIZE, 1, 5);
-
-        Mat FM = new Mat();
-        Core.add(gx.mul(gx), gy.mul(gy), FM);
-
-        return Core.mean(FM).val[0];
-    }
-
-    /**
      * Split a image into smaller subsection and add each subsection to a map.
      *
      * @param imageMat the mat from the image
@@ -117,7 +87,7 @@ public class BlurDetector {
         for (SectionFinder.Section section : sections) {
             Mat rowMat = imageMat.rowRange(section.getRangeWithPadding());
 
-            double var = getVariance(rowMat);
+            double var = blurDetector.getVariance(rowMat);
 
             // Add the new smaller mat with the position and its variance to the list
             list.add(new MatPos(rowMat, index, var, referenceIndex, section));
@@ -239,7 +209,7 @@ public class BlurDetector {
 
         // Add all mats to the priority queue
         for(Mat mat : frames) {
-            double var = getVariance(mat);
+            double var = blurDetector.getVariance(mat);
             pq.add(new MatPos(mat, var));
         }
 
