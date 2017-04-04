@@ -138,7 +138,7 @@ public class EnhanceImageDemo implements ActionListener, ChangeListener {
 				updateThreshold(RANGEDTHRESHOLDSTRING, rangedThresholdParametersPanel);
 				break;
 			case NOTHRESHOLDSTRING:
-				updateThreshold(NOBLURSTRING, noThresholdParametersPanel);
+				updateThreshold(NOTHRESHOLDSTRING, noThresholdParametersPanel);
 				break;
 			case OTSUSTRING:
 				boolean isOtsuCheckBoxSelected = regularThresholdParametersPanel.isOtsuCheckBoxSelected();
