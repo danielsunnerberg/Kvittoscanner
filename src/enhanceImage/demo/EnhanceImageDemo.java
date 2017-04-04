@@ -19,6 +19,9 @@ import java.awt.event.ActionListener;
  */
 public class EnhanceImageDemo implements ActionListener, ChangeListener {
 
+	private final int WINDOWHEIGHT = 700;
+	private final int WINDOWWIDTH = 800;
+
 	public static final String GAUSSIANBLURSTRING = "Gaussian blur";
 	public static final String MEDIANBLURSTRING = "Median blur";
 	public static final String NOBLURSTRING = "No blur";
@@ -57,11 +60,11 @@ public class EnhanceImageDemo implements ActionListener, ChangeListener {
 		frame = new JFrame();
 		frame.setTitle("Enhance image demo");
 		frame.setLayout(new BorderLayout());
-		frame.setSize(800, 700);
+		frame.setSize(WINDOWWIDTH, WINDOWHEIGHT);
 
 		JPanel leftPanel = new JPanel();
 		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
-		leftPanel.setSize(400,700);
+		leftPanel.setSize(WINDOWWIDTH / 2, WINDOWHEIGHT);
 
 		BlurPanel blurPanel = new BlurPanel(this);
 		leftPanel.add(blurPanel);
@@ -88,7 +91,7 @@ public class EnhanceImageDemo implements ActionListener, ChangeListener {
 
 		JPanel rightPanel = new JPanel();
 		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
-		rightPanel.setSize(400,700);
+		rightPanel.setSize(WINDOWWIDTH / 2, WINDOWHEIGHT);
 
 		ShowImagePanel showImagePanel = new ShowImagePanel(this);
 		rightPanel.add(showImagePanel);
