@@ -16,8 +16,6 @@ import java.awt.event.ActionListener;
  */
 public class EnhanceImageDemo implements ActionListener {
 
-	private final String IMAGEPATH = "src/test/resources/randomimages/";
-
 	public static final String GAUSSIANBLURSTRING = "Gaussian blur";
 	public static final String MEDIANBLURSTRING = "Median blur";
 	public static final String NOBLURSTRING = "No blur";
@@ -48,9 +46,8 @@ public class EnhanceImageDemo implements ActionListener {
 	private RangedThresholdParametersPanel rangedThresholdParametersPanel;
 	private NoThresholdParametersPanel noThresholdParametersPanel;
 
-	EnhanceImageDemo (String imageName) {
-		String file = IMAGEPATH + imageName;
-		originalMat = Imgcodecs.imread(file);
+	EnhanceImageDemo (String imagePath) {
+		originalMat = Imgcodecs.imread(imagePath);
 		Mat resizedMat = ImageUtils.resize(originalMat, IMAGESIZE, IMAGESIZE);
 		Image currentImage = ImageUtils.matToImage(resizedMat);
 
