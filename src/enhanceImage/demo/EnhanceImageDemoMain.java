@@ -10,8 +10,9 @@ public class EnhanceImageDemoMain {
 		//System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		String imagePath = "src/test/resources/randomimages/";
-		String imageName = "BKNoFlash.JPG";
-		String filePath = imagePath + imageName;
+		String stadiumReceiptName = "Stadium.JPG";
+		String bkReceiptName = "BKNoFlash.JPG";
+		String filePath = imagePath + stadiumReceiptName;
 
 		new EnhanceImageDemo(filePath);
 	}
