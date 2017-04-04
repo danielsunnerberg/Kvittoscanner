@@ -4,9 +4,12 @@ import enhanceImage.ImageEnhancer;
 import enhanceImage.demo.components.*;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import utilities.ImageUtils;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,7 +17,7 @@ import java.awt.event.ActionListener;
 /**
  * Created by gustavbergstrom on 2017-03-21.
  */
-public class EnhanceImageDemo implements ActionListener {
+public class EnhanceImageDemo implements ActionListener, ChangeListener {
 
 	public static final String GAUSSIANBLURSTRING = "Gaussian blur";
 	public static final String MEDIANBLURSTRING = "Median blur";
@@ -74,7 +77,7 @@ public class EnhanceImageDemo implements ActionListener {
 		leftPanel.add(thresholdPanel);
 
 		thresholdParametersPanel = new JPanel();
-		regularThresholdParametersPanel = new RegularThresholdParametersPanel(this);
+		regularThresholdParametersPanel = new RegularThresholdParametersPanel(this, this);
 		adaptiveThresholdParametersPanel = new AdaptiveThresholdParametersPanel();
 		rangedThresholdParametersPanel = new RangedThresholdParametersPanel();
 		noThresholdParametersPanel = new NoThresholdParametersPanel();
@@ -270,6 +273,17 @@ public class EnhanceImageDemo implements ActionListener {
 				}
 				showMat(enhancedMat);
 				break;
+		}
+	}
+
+	public void stateChanged (ChangeEvent e) {
+		JSlider source = (JSlider) e.getSource();
+		if (source.equals(regularThresholdParametersPanel.getThresholdTypeSlider())) {
+			if (source.getValue() == Imgproc.THRESH_BINARY || source.getValue() == Imgproc.THRESH_BINARY_INV) {
+				regularThresholdParametersPanel.setMaxvalSliderEnabled(true);
+			} else {
+				regularThresholdParametersPanel.setMaxvalSliderEnabled(false);
+			}
 		}
 	}
 

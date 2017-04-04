@@ -1,6 +1,7 @@
 package enhanceImage.demo.components;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
 
@@ -17,7 +18,7 @@ public class RegularThresholdParametersPanel extends JPanel {
 	private JCheckBox otsuCheckBox;
 	private JCheckBox grayScaleCheckBox;
 
-	public RegularThresholdParametersPanel(ActionListener actionListener) {
+	public RegularThresholdParametersPanel(ActionListener actionListener, ChangeListener changeListener) {
 		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
 		JPanel thresholdPanel = new JPanel();
@@ -50,6 +51,7 @@ public class RegularThresholdParametersPanel extends JPanel {
 		thresholdTypeSlider.setMajorTickSpacing(1);
 		thresholdTypeSlider.setPaintTicks(true);
 		thresholdTypeSlider.setSnapToTicks(true);
+		thresholdTypeSlider.addChangeListener(changeListener);
 		Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 		labelTable.put(0, new JLabel("Binary"));
 		labelTable.put(1, new JLabel("Binary inverse"));
@@ -102,5 +104,13 @@ public class RegularThresholdParametersPanel extends JPanel {
 
 	public void setThresholdSliderEnabled (boolean enabled) {
 		thresholdSlider.setEnabled(enabled);
+	}
+
+	public void setMaxvalSliderEnabled (boolean enabled) {
+		maxvalSlider.setEnabled(enabled);
+	}
+
+	public JSlider getThresholdTypeSlider () {
+		return thresholdTypeSlider;
 	}
 }
