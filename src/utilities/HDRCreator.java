@@ -1,46 +1,77 @@
 package utilities;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.photo.CalibrateDebevec;
-import org.opencv.photo.MergeDebevec;
-import org.opencv.photo.MergeMertens;
-import org.opencv.photo.TonemapDurand;
+import org.opencv.core.Scalar;
+import org.opencv.photo.*;
 import org.opencv.utils.Converters;
-
 import java.util.List;
 
 import static org.opencv.photo.Photo.*;
 
-/**
- * Created by jacobth on 2017-03-09.
- */
 public class HDRCreator {
 
+    private static final Scalar MULTIPLIER = new Scalar(255, 255, 255);
+
+    private static final float GAMMA_CORRECTION_DEFAULT = 2.2f;
+    private static final float GAMMA_CORRECTION_ROBERTSON = 1.3f;
 
     public Mat createHDR(List<Float> times, List<Mat> src) {
 
-        Mat response = new Mat();
         Mat timeMat = floatToMat(times);
 
-        CalibrateDebevec calibrate = createCalibrateDebevec();
-        calibrate.process(src, response, timeMat);
+        Mat crf = calibrateCRF(src, timeMat);
 
         Mat hdr = new Mat();
         MergeDebevec merge_debevec = createMergeDebevec();
-        merge_debevec.process(src, hdr, timeMat, response);
+        merge_debevec.process(src, hdr, timeMat, crf);
 
-        Mat ldr = new Mat();
-        TonemapDurand tonemap = createTonemapDurand();
-        tonemap.process(hdr, ldr);
+        return toneMapImage(hdr, GAMMA_CORRECTION_DEFAULT);
+    }
 
-        Mat fusion = new Mat();
-        MergeMertens merge_mertens = createMergeMertens();
-        merge_mertens.process(src, fusion);
+    public Mat createHDRRobertson(List<Float> times, List<Mat> src) {
 
-        return ldr;
+        Mat timeMat = floatToMat(times);
+
+        Mat crf = calibrateCRF(src, timeMat);
+
+        Mat hdr = new Mat();
+        MergeRobertson merge_robertson = createMergeRobertson();
+        merge_robertson.process(src, hdr, timeMat, crf);
+
+        return toneMapImage(hdr, GAMMA_CORRECTION_ROBERTSON);
     }
 
     private Mat floatToMat(List<Float> list) {
         return Converters.vector_float_to_Mat(list);
+    }
+
+    public Mat getMertensFusion(List<Mat> images){
+        Mat fusion = new Mat();
+        MergeMertens mergeMertens = createMergeMertens();
+        mergeMertens.process(images, fusion);
+
+        Mat result = new Mat();
+        Core.multiply(fusion, MULTIPLIER, result);
+
+        return result;
+    }
+
+    private Mat toneMapImage(Mat src, float gammaCorrection){
+        Mat toneMap = new Mat();
+        TonemapDurand tonemapDurand = createTonemapDurand(gammaCorrection, 4.0f, 1.0f, 2.0f, 2.0f);
+        tonemapDurand.process(src, toneMap);
+        Mat result = new Mat();
+        Core.multiply(toneMap, MULTIPLIER, result);
+
+
+        return result;
+    }
+
+    private Mat calibrateCRF(List<Mat> src, Mat times){
+        Mat result = new Mat();
+        CalibrateDebevec calibrate = createCalibrateDebevec();
+        calibrate.process(src, result, times);
+        return result;
     }
 }
