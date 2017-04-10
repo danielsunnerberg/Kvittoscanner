@@ -19,6 +19,10 @@ public class HDRCreator {
     private static final float GAMMA_CORRECTION_DEFAULT = 2.2f;
     private static final float GAMMA_CORRECTION_ROBERTSON = 1.3f;
 
+    private static final String DEBEVEC = "debevec";
+    private static final String ROBERTSON = "robertson";
+    private static final String MERTENS = "mertens";
+
     public static List<Mat> createHDR(String directory){
         List<String>  imagePaths = ImageReader.readImages(directory);
         List<Mat> imageMats = new ArrayList<>();
@@ -38,6 +42,31 @@ public class HDRCreator {
         mergedImages.add(createMertensFusion(imageMats));
 
         return mergedImages;
+    }
+
+    public static Mat createHDR(String directory, String method){
+        List<String>  imagePaths = ImageReader.readImages(directory);
+        List<Mat> imageMats = new ArrayList<>();
+
+        for (String imagePath : imagePaths) {
+            imageMats.add(Imgcodecs.imread(imagePath));
+        }
+
+        if(method.equals(MERTENS)) {
+            return createMertensFusion(imageMats);
+        }
+
+        List<Float> exposureTimes = ImageReader.getExposureTimes(imagePaths);
+
+        if(method.equals(DEBEVEC)) {
+            return createHDRDebevec(exposureTimes , imageMats);
+        }
+
+        if(method.equals(ROBERTSON)) {
+            return createHDRRobertson(exposureTimes , imageMats);
+        }
+
+        return new Mat();
     }
 
     private static Mat createHDRDebevec(List<Float> times, List<Mat> src) {
