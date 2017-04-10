@@ -23,20 +23,19 @@ public class ReceiptExtractor {
     private final ReceiptMerger receiptMerger = new ReceiptMerger(false);
 
     /**
-     * Extracts a receipt from a video stream by finding the best pieces of
-     * the best frames.
+     * Extracts all receipts found from a video stream.
      *
      * @param source Video stream to extract receipt from
      * @param detectGlare Whether anti-glare methods should be automatically applied. Should be `true` if flash was used.
      * @return The extracted receipt
      */
-    public Mat extractReceipt(VideoCapture source, boolean detectGlare) {
+    public List<Mat> extractReceipts(VideoCapture source, boolean detectGlare) {
         logger.info("Extracting receipt from video capture [detectGlare={}]", detectGlare);
         // Split the video to frames and select the best frames.
         List<Mat> frames = VideoSplitter.getFrames(source, NUM_SPLITTED_FRAMES);
         if (frames.isEmpty()) {
             throw new IllegalArgumentException(
-                "Splitted video to 0 frames. If the source isn't empty, ensure that OpenCV is installed correctly."
+                    "Splitted video to 0 frames. If the source isn't empty, ensure that OpenCV is installed correctly."
             );
         }
         logger.info("Splitted capture to {} frames", frames.size());
@@ -68,7 +67,21 @@ public class ReceiptExtractor {
         }
 
         logger.info("Extracted {} receipts from {} frames", receipts.size(), frames.size());
+        return receipts;
+    }
 
+    /**
+     * Extracts a receipt from a video stream by finding the best pieces of
+     * the best frames.
+     *
+     * @param source Video stream to extract receipt from
+     * @param detectGlare Whether anti-glare methods should be automatically applied. Should be `true` if flash was used.
+     * @return The extracted receipt
+     */
+    public Mat extractSuperReceipt(VideoCapture source, boolean detectGlare) {
+        List<Mat> receipts = extractReceipts(source, detectGlare);
+
+        logger.info("Combining frames to one super frame");
         // Merge receipts into super-image
         return receiptMerger.createImageRows(receipts);
     }

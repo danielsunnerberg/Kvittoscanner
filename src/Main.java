@@ -3,6 +3,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Main {
 
@@ -16,10 +17,8 @@ public class Main {
 
         VideoCapture videoCapture = new VideoCapture(videoPath);
         boolean detectGlare = true;
-        Mat extractReceipt = new ReceiptExtractor().extractReceipt(videoCapture, detectGlare);
-
-        String outPath = String.format("%s\\Desktop\\frames\\merged.png", System.getProperty("user.home"));
-        Imgcodecs.imwrite(outPath, extractReceipt);
+        List<Mat> extractReceipt = new ReceiptExtractor().extractReceipts(videoCapture, detectGlare);
+        System.out.println(extractReceipt.size());
     }
 
 }
