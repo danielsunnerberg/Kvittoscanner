@@ -3,8 +3,11 @@ package utilities;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.photo.*;
 import org.opencv.utils.Converters;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.opencv.photo.Photo.*;
@@ -16,11 +19,34 @@ public class HDRCreator {
     private static final float GAMMA_CORRECTION_DEFAULT = 2.2f;
     private static final float GAMMA_CORRECTION_ROBERTSON = 1.3f;
 
-    public Mat createHDR(List<Float> times, List<Mat> src) {
+    public static List<Mat> createHDR(String directory){
+        List<String>  imagePaths = ImageReader.readImages(directory);
+        List<Mat> imageMats = new ArrayList<>();
+
+        for (String imagePath : imagePaths) {
+            imageMats.add(Imgcodecs.imread(imagePath));
+        }
+
+        List<Float> exposureTimes = ImageReader.getExposureTimes(imagePaths);
+
+        List<Mat> mergedImages = new ArrayList<>();
+
+        mergedImages.add(createHDRDebevec(exposureTimes , imageMats));
+
+        mergedImages.add(createHDRRobertson(exposureTimes , imageMats));
+
+        mergedImages.add(createMertensFusion(imageMats));
+
+        return mergedImages;
+    }
+
+    private static Mat createHDRDebevec(List<Float> times, List<Mat> src) {
 
         Mat timeMat = floatToMat(times);
 
-        Mat crf = calibrateCRF(src, timeMat);
+        Mat crf = new Mat();
+        CalibrateDebevec calibrateDebevec = createCalibrateDebevec();
+        calibrateDebevec.process(src, crf, timeMat);
 
         Mat hdr = new Mat();
         MergeDebevec merge_debevec = createMergeDebevec();
@@ -29,11 +55,13 @@ public class HDRCreator {
         return toneMapImage(hdr, GAMMA_CORRECTION_DEFAULT);
     }
 
-    public Mat createHDRRobertson(List<Float> times, List<Mat> src) {
+    private static Mat createHDRRobertson(List<Float> times, List<Mat> src) {
 
         Mat timeMat = floatToMat(times);
 
-        Mat crf = calibrateCRF(src, timeMat);
+        Mat crf = new Mat();
+        CalibrateRobertson calibrateRobertson = createCalibrateRobertson();
+        calibrateRobertson.process(src, crf, timeMat);
 
         Mat hdr = new Mat();
         MergeRobertson merge_robertson = createMergeRobertson();
@@ -42,11 +70,11 @@ public class HDRCreator {
         return toneMapImage(hdr, GAMMA_CORRECTION_ROBERTSON);
     }
 
-    private Mat floatToMat(List<Float> list) {
+    private static Mat floatToMat(List<Float> list) {
         return Converters.vector_float_to_Mat(list);
     }
 
-    public Mat getMertensFusion(List<Mat> images){
+    private static Mat createMertensFusion(List<Mat> images){
         Mat fusion = new Mat();
         MergeMertens mergeMertens = createMergeMertens();
         mergeMertens.process(images, fusion);
@@ -57,21 +85,13 @@ public class HDRCreator {
         return result;
     }
 
-    private Mat toneMapImage(Mat src, float gammaCorrection){
+    private static Mat toneMapImage(Mat src, float gammaCorrection){
         Mat toneMap = new Mat();
         TonemapDurand tonemapDurand = createTonemapDurand(gammaCorrection, 4.0f, 1.0f, 2.0f, 2.0f);
         tonemapDurand.process(src, toneMap);
         Mat result = new Mat();
         Core.multiply(toneMap, MULTIPLIER, result);
 
-
-        return result;
-    }
-
-    private Mat calibrateCRF(List<Mat> src, Mat times){
-        Mat result = new Mat();
-        CalibrateDebevec calibrate = createCalibrateDebevec();
-        calibrate.process(src, result, times);
         return result;
     }
 }
