@@ -4,6 +4,7 @@ import com.sun.javafx.geom.Edge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -64,8 +65,10 @@ public class HDRCreator {
             logger.info("Creating Mertens fusion");
             Mat mertens = createMertensFusion(imageMats);
             logger.info("Skewing image");
-            return edgeDetector.extractBiggestObject(mertens, false);
-        }
+            Mat result = new Mat();
+            mertens.assignTo(result, CvType.CV_8U);
+            return edgeDetector.extractBiggestObject(result, false);
+        }   
 
         logger.info("Reading exposure times from images");
         List<Float> exposureTimes = ImageReader.getExposureTimes(imagePaths);
