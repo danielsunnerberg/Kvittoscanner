@@ -1,5 +1,6 @@
 package utilities;
 
+import com.sun.javafx.geom.Edge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opencv.core.Core;
@@ -25,6 +26,8 @@ public class HDRCreator {
     private static final String DEBEVEC = "debevec";
     private static final String ROBERTSON = "robertson";
     private static final String MERTENS = "mertens";
+
+    private static final EdgeDetector edgeDetector = new EdgeDetector();
 
     public static List<Mat> createHDR(String directory){
         List<String>  imagePaths = ImageReader.readImages(directory);
@@ -59,7 +62,9 @@ public class HDRCreator {
 
         if(method.equals(MERTENS)) {
             logger.info("Creating Mertens fusion");
-            return createMertensFusion(imageMats);
+            Mat mertens = createMertensFusion(imageMats);
+            logger.info("Skewing image");
+            return edgeDetector.extractBiggestObject(mertens, false);
         }
 
         logger.info("Reading exposure times from images");
@@ -67,12 +72,16 @@ public class HDRCreator {
 
         if(method.equals(DEBEVEC)) {
             logger.info("Creating HDR from Debevec algorithm");
-            return createHDRDebevec(exposureTimes , imageMats);
+            Mat debevec = createHDRDebevec(exposureTimes , imageMats);
+            logger.info("Skewing image");
+            return edgeDetector.extractBiggestObject(debevec, false);
         }
 
         if(method.equals(ROBERTSON)) {
             logger.info("Creating HDR from Robertson algorithm");
-            return createHDRRobertson(exposureTimes , imageMats);
+            Mat robertson = createHDRRobertson(exposureTimes , imageMats);
+            logger.info("Skewing image");
+            return edgeDetector.extractBiggestObject(robertson, false);
         }
 
         return new Mat();
