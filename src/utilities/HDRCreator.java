@@ -1,5 +1,7 @@
 package utilities;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
@@ -15,6 +17,7 @@ import static org.opencv.photo.Photo.*;
 public class HDRCreator {
 
     private static final Scalar MULTIPLIER = new Scalar(255, 255, 255);
+    private static final Logger logger = LogManager.getLogger(HDRCreator.class);
 
     private static final float GAMMA_CORRECTION_DEFAULT = 2.2f;
     private static final float GAMMA_CORRECTION_ROBERTSON = 1.3f;
@@ -45,6 +48,8 @@ public class HDRCreator {
     }
 
     public static Mat createHDR(String directory, String method){
+        logger.info("Creating HDR image");
+        logger.info("Loading images");
         List<String>  imagePaths = ImageReader.readImages(directory);
         List<Mat> imageMats = new ArrayList<>();
 
@@ -53,16 +58,20 @@ public class HDRCreator {
         }
 
         if(method.equals(MERTENS)) {
+            logger.info("Creating Mertens fusion");
             return createMertensFusion(imageMats);
         }
 
+        logger.info("Reading exposure times from images");
         List<Float> exposureTimes = ImageReader.getExposureTimes(imagePaths);
 
         if(method.equals(DEBEVEC)) {
+            logger.info("Creating HDR from Debevec algorithm");
             return createHDRDebevec(exposureTimes , imageMats);
         }
 
         if(method.equals(ROBERTSON)) {
+            logger.info("Creating HDR from Robertson algorithm");
             return createHDRRobertson(exposureTimes , imageMats);
         }
 
@@ -73,10 +82,12 @@ public class HDRCreator {
 
         Mat timeMat = floatToMat(times);
 
+        logger.info("Calibrating camera response function");
         Mat crf = new Mat();
         CalibrateDebevec calibrateDebevec = createCalibrateDebevec();
         calibrateDebevec.process(src, crf, timeMat);
 
+        logger.info("Merging images to one HDR");
         Mat hdr = new Mat();
         MergeDebevec merge_debevec = createMergeDebevec();
         merge_debevec.process(src, hdr, timeMat, crf);
@@ -88,10 +99,12 @@ public class HDRCreator {
 
         Mat timeMat = floatToMat(times);
 
+        logger.info("Calibrating camera response function");
         Mat crf = new Mat();
         CalibrateRobertson calibrateRobertson = createCalibrateRobertson();
         calibrateRobertson.process(src, crf, timeMat);
 
+        logger.info("Merging images to one HDR");
         Mat hdr = new Mat();
         MergeRobertson merge_robertson = createMergeRobertson();
         merge_robertson.process(src, hdr, timeMat, crf);
@@ -115,6 +128,7 @@ public class HDRCreator {
     }
 
     private static Mat toneMapImage(Mat src, float gammaCorrection){
+        logger.info("Tone mapping image");
         Mat toneMap = new Mat();
         TonemapDurand tonemapDurand = createTonemapDurand(gammaCorrection, 4.0f, 1.0f, 2.0f, 2.0f);
         tonemapDurand.process(src, toneMap);
