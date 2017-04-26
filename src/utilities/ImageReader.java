@@ -4,8 +4,8 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
-import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class ImageReader {
+
+    private static final Logger logger = LogManager.getLogger(ImageReader.class);
+
 
     public static List<String> readImages(String directory){
         List<String> filePaths = new ArrayList<>();
@@ -46,7 +49,9 @@ public class ImageReader {
 
             ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
 
-            return directory.getFloatObject(ExifSubIFDDirectory.TAG_EXPOSURE_TIME);
+            float expTimes = directory.getFloatObject(ExifSubIFDDirectory.TAG_EXPOSURE_TIME);
+            logger.info("Exposure time for: " + file + " is: " + expTimes);
+            return expTimes;
 
         } catch (ImageProcessingException e) {
             e.printStackTrace();
