@@ -77,14 +77,18 @@ public class HDRCreator {
             logger.info("Creating HDR from Debevec algorithm");
             Mat debevec = createHDRDebevec(exposureTimes , imageMats);
             logger.info("Skewing image");
-            return edgeDetector.extractBiggestObject(debevec, false);
+            Mat result = new Mat();
+            debevec.assignTo(result, CvType.CV_8U);
+            return edgeDetector.extractBiggestObject(result, false);
         }
 
         if(method.equals(ROBERTSON)) {
             logger.info("Creating HDR from Robertson algorithm");
             Mat robertson = createHDRRobertson(exposureTimes , imageMats);
             logger.info("Skewing image");
-            return edgeDetector.extractBiggestObject(robertson, false);
+            Mat result = new Mat();
+            robertson.assignTo(result, CvType.CV_8U);
+            return edgeDetector.extractBiggestObject(result, false);
         }
 
         return new Mat();
